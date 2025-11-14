@@ -1,8 +1,7 @@
-// src/features/auth/LoginForm.jsx
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";  
 
-// Hardcoded credentials for this assignment
 const VALID_EMAIL = "user@example.com";
 const VALID_PASSWORD = "password123";
 
@@ -12,8 +11,8 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [message, setMessage] = useState("");       // success/error text
-  const [isSuccess, setIsSuccess] = useState(null); // null | true | false
+  const [message, setMessage] = useState("");       
+  const [isSuccess, setIsSuccess] = useState(null); 
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,7 +27,7 @@ export default function LoginForm() {
       setIsSuccess(true);
       setMessage("Login successful! 🎉");
 
-      // ✅ redirect to the route path defined in routes.jsx
+     
       navigate("/vault");
     } else {
       setIsSuccess(false);
