@@ -1,6 +1,6 @@
 import VaultHeader from "../features/vault/VaultHeader";
 import VaultList from "../features/vault/VaultList";
-import AddPasswordModal from '../features/vault/AddPasswordModal';
+import AddPasswordModal from "../features/vault/AddPasswordModal";
 import { useState } from "react";
 
 export default function VaultPage() {
@@ -13,7 +13,7 @@ export default function VaultPage() {
       {/* 3. Conditionally render your modal */}
       {isModalOpen && (
         <AddPasswordModal
-          isOpen={isModalOpen} 
+          open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
         />
       )}
