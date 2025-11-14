@@ -12,8 +12,9 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import AddIcon from "@mui/icons-material/Add";
 
-export default function VaultHeader() {
+export default function VaultHeader({ onOpenModal }) {
   return (
     <Paper
       elevation={0}
@@ -56,6 +57,16 @@ export default function VaultHeader() {
 
       {/* RIGHT SIDE BUTTONS */}
       <Stack direction="row" spacing={2}>
+
+        <Button
+          variant="outlined"
+          startIcon={<AddIcon />}
+          onClick={onOpenModal}
+          sx={{ color: "white", borderRadius: "10px", textTransform: "none", backgroundColor: "black" }}
+        >
+          Add Password
+        </Button>
+
         <Button
           variant="outlined"
           startIcon={<FileUploadIcon />}
