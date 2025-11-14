@@ -31,15 +31,12 @@ export default function LoginForm() {
       setMessage("Login successful!");
       setIsSuccess(true);
 
-      // 🔹 Update global auth state in Redux
       dispatch(
         login({
           email,
-          // you can add more user fields here if you want
         })
       );
 
-      // 🔹 Navigate to vault
       setTimeout(() => navigate("/vault"), 600);
     } else {
       setMessage("Incorrect email or password.");
