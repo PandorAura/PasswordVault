@@ -1,8 +1,11 @@
+import VaultHeader from "../features/vault/VaultHeader";
+import VaultList from "../features/vault/VaultList";
+
 export default function VaultPage() {
   return (
     <div>
-      <h1>Login Page</h1>
-      <p>Welcome to the Password Vault main page!</p>
+      <VaultHeader />
+      <VaultList />
     </div>
   );
 }

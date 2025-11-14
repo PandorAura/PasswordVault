@@ -1,13 +1,7 @@
 import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./routes";
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-
-const theme = createTheme({
-  palette: {
-    mode: "light",
-    primary: { main: "#1976d2" },
-  },
-});
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import theme from "../styles/theme";
 
 export default function App() {
   return (
