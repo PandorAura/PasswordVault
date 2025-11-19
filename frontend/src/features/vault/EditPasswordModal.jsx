@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -15,22 +15,31 @@ import {
   Typography,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { addItem } from "./vaultSlice";
+import { editItem } from "./vaultSlice";
 import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
 
-export default function AddPasswordModal({ open, onClose }) {
+export default function EditPasswordModal({ open, onClose, item }) {
   const dispatch = useDispatch();
 
+  // Tabs
   const [activeTab, setActiveTab] = useState(0);
 
-  const [form, setForm] = useState({
+  const emptyForm = {
     title: "",
     username: "",
     password: "",
     url: "",
     category: "General",
     notes: "",
-  });
+  };
+
+  const [form, setForm] = useState(item || emptyForm);
+
+  useEffect(() => {
+    if (item) {
+      setForm(item);
+    }
+  }, [item]);
 
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
@@ -63,13 +72,13 @@ export default function AddPasswordModal({ open, onClose }) {
     const strength = calculatePasswordStrength(form.password);
 
     dispatch(
-      addItem({
-        id: Date.now(),
+      editItem({
         ...form,
         strength,
         updatedAt: new Date().toLocaleDateString(),
       })
     );
+
     onClose();
   };
 
@@ -92,17 +101,13 @@ export default function AddPasswordModal({ open, onClose }) {
       }}
     >
       {/* HEADER */}
-      <DialogTitle
-        sx={{
-          fontWeight: 600,
-          pb: 1,
-        }}
-      >
-        Add New Password
+      <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
+        Edit Password
         <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-          Create a new entry for your vault
+          Modify the existing vault entry
         </Typography>
       </DialogTitle>
+
       {/* TABS */}
       <Tabs
         value={activeTab}
@@ -112,8 +117,7 @@ export default function AddPasswordModal({ open, onClose }) {
         <Tab label="Details" />
         <Tab label="Generator" />
       </Tabs>
-      <Box sx={{ height: 12 }} /> {/* Prevent label overlap */}
-      {/* BODY */}
+
       <DialogContent sx={{ pt: 2 }}>
         {activeTab === 0 && (
           <Stack spacing={2}>
@@ -170,7 +174,7 @@ export default function AddPasswordModal({ open, onClose }) {
         )}
 
         {activeTab === 1 && (
-          <Stack spacing={3} sx={{ height: "100%", flexGrow: 1 }}>
+          <Stack spacing={3}>
             <TextField
               label="Generated password"
               fullWidth
@@ -178,7 +182,6 @@ export default function AddPasswordModal({ open, onClose }) {
               readOnly
             />
 
-            {/* Length slider */}
             <Box>
               <Typography sx={{ fontWeight: 500 }}>Length: {length}</Typography>
               <Slider
@@ -189,7 +192,6 @@ export default function AddPasswordModal({ open, onClose }) {
               />
             </Box>
 
-            {/* Toggles */}
             <Box>
               <Toggle
                 label="Uppercase (A–Z)"
@@ -213,25 +215,21 @@ export default function AddPasswordModal({ open, onClose }) {
               />
             </Box>
 
-            <Box sx={{ height: 8 }} />
-
             <Button variant="contained" onClick={generatePassword}>
               Generate
             </Button>
           </Stack>
         )}
       </DialogContent>
-      {/* FOOTER */}
-      {activeTab === 0 && (
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={onClose} variant="outlined">
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={handleSubmit}>
-            Add Password
-          </Button>
-        </DialogActions>
-      )}
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} variant="outlined">
+          Cancel
+        </Button>
+        <Button variant="contained" onClick={handleSubmit}>
+          Save Changes
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

@@ -3,7 +3,7 @@ import { Box, Grid, Typography } from "@mui/material";
 import { useSelector } from "react-redux";
 import VaultItem from "./VaultItem";
 
-export default function VaultList() {
+export default function VaultList({ onEditItem }) {
   const items = useSelector((state) => state.vault.items);
 
   const hasItems = items && items.length > 0;
@@ -43,7 +43,7 @@ export default function VaultList() {
                 key={item.id}
                 sx={{ display: "flex" }}
               >
-                <VaultItem item={item} />
+                <VaultItem item={item} onEdit={onEditItem} />
               </Grid>
             ))}
         </Grid>

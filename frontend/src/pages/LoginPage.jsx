@@ -9,7 +9,7 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "background.default", // #EEF2FF from theme
+        backgroundColor: "background.default",
         padding: 2,
       }}
     >
