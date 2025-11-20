@@ -32,15 +32,13 @@ export default function VaultList({ onEditItem }) {
           </Typography>
         )}
 
+        {/* New Grid API */}
         <Grid container spacing={3}>
           {hasItems &&
             items.map((item) => (
               <Grid
-                item
-                xs={12}
-                sm={6}
-                md={4}
                 key={item.id}
+                size={{ xs: 12, sm: 6, md: 4 }}
                 sx={{ display: "flex" }}
               >
                 <VaultItem item={item} onEdit={onEditItem} />

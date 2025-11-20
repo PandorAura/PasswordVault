@@ -50,6 +50,7 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const [includeLower, setIncludeLower] = useState(true);
   const [includeNums, setIncludeNums] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const generatePassword = () => {
     let chars = "";
@@ -69,6 +70,23 @@ export default function EditPasswordModal({ open, onClose, item }) {
   };
 
   const handleSubmit = () => {
+    const errors = {};
+
+    if (!form.title.trim()) errors.title = "Title is required";
+    if (!form.username.trim()) errors.username = "Username is required";
+    if (!form.password.trim()) errors.password = "Password cannot be empty";
+
+    const urlRegex = /^(https?:\/\/)?([\w\d-]+\.)+[\w\d]{2,}(\/.*)?$/;
+    if (form.url && !urlRegex.test(form.url)) {
+      errors.url = "Invalid URL format";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    // Proceed
     const strength = calculatePasswordStrength(form.password);
 
     dispatch(
@@ -126,12 +144,16 @@ export default function EditPasswordModal({ open, onClose, item }) {
               fullWidth
               value={form.title}
               onChange={handleChange("title")}
+              error={Boolean(fieldErrors.title)}
+              helperText={fieldErrors.title}
             />
             <TextField
               label="Username / Email"
               fullWidth
               value={form.username}
               onChange={handleChange("username")}
+              error={Boolean(fieldErrors.username)}
+              helperText={fieldErrors.username}
             />
             <TextField
               label="Password"
@@ -139,12 +161,16 @@ export default function EditPasswordModal({ open, onClose, item }) {
               type="text"
               value={form.password}
               onChange={handleChange("password")}
+              error={Boolean(fieldErrors.password)}
+              helperText={fieldErrors.password}
             />
             <TextField
               label="Website URL"
               fullWidth
               value={form.url}
               onChange={handleChange("url")}
+              error={Boolean(fieldErrors.url)}
+              helperText={fieldErrors.url}
             />
             <TextField
               label="Category"

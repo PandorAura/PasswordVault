@@ -130,8 +130,11 @@ export default function VaultItem({ item, onEdit }) {
             Username:
           </Typography>
           <Typography sx={{ fontWeight: 500 }}>{item.username}</Typography>
-
-          <IconButton size="small" sx={{ marginLeft: 1 }}>
+          <IconButton
+            size="small"
+            sx={{ marginLeft: 1 }}
+            onClick={() => navigator.clipboard.writeText(item.username)}
+          >
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -158,7 +161,10 @@ export default function VaultItem({ item, onEdit }) {
             )}
           </IconButton>
 
-          <IconButton size="small">
+          <IconButton
+            size="small"
+            onClick={() => navigator.clipboard.writeText(item.password)}
+          >
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Box>
