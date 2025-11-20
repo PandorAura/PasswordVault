@@ -32,7 +32,6 @@ export default function VaultList({ onEditItem }) {
           </Typography>
         )}
 
-        {/* New Grid API */}
         <Grid container spacing={3}>
           {hasItems &&
             items.map((item) => (

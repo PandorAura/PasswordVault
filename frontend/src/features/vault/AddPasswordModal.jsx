@@ -112,7 +112,7 @@ export default function AddPasswordModal({ open, onClose }) {
         <Tab label="Details" />
         <Tab label="Generator" />
       </Tabs>
-      <Box sx={{ height: 12 }} /> {/* Prevent label overlap */}
+      <Box sx={{ height: 12 }} />
       {/* BODY */}
       <DialogContent sx={{ pt: 2 }}>
         {activeTab === 0 && (
