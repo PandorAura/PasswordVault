@@ -21,7 +21,6 @@ import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator
 export default function EditPasswordModal({ open, onClose, item }) {
   const dispatch = useDispatch();
 
-  // Tabs
   const [activeTab, setActiveTab] = useState(0);
 
   const emptyForm = {
@@ -86,7 +85,6 @@ export default function EditPasswordModal({ open, onClose, item }) {
       return;
     }
 
-    // Proceed
     const strength = calculatePasswordStrength(form.password);
 
     dispatch(
