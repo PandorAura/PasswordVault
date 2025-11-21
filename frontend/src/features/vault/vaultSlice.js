@@ -68,9 +68,16 @@ const vaultSlice = createSlice({
     removeItem: (state, action) => {
       state.items = state.items.filter((item) => item.id !== action.payload);
     },
+    editItem: (state, action) => {
+      const updated = action.payload;
+      const index = state.items.findIndex(i => i.id === updated.id);
+      if (index !== -1) {
+        state.items[index] = updated;
+      }
+    }
   },
 });
 
-export const { addItem, removeItem } = vaultSlice.actions;
+export const { addItem, removeItem, editItem } = vaultSlice.actions;
 
 export default vaultSlice.reducer;

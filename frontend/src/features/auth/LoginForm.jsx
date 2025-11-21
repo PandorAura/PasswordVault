@@ -3,15 +3,15 @@ import React, { useState } from "react";
 import { TextField, Button, Alert, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login } from "./authSlice"; 
+import { login } from "./authSlice";
 
 // Hardcoded credentials
 const VALID_EMAIL = "user@example.com";
-const VALID_PASSWORD = "password123";
+const VALID_PASSWORD = "user";
 
 export default function LoginForm() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();  
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
