@@ -26,6 +26,12 @@ public class Password {
     private User user;
 
     @Column(nullable = false)
+    private String title;
+
+    @Column(name = "username_email", nullable = false)
+    private String usernameOrEmail;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(name = "website_url")
