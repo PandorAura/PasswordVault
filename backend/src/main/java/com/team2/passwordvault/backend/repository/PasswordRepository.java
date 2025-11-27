@@ -4,9 +4,8 @@ import com.team2.passwordvault.backend.model.Password;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface PasswordRepository extends JpaRepository<Password, Long> {
+import java.util.UUID;
 
-    // You can add methods here to fetch passwords for a specific user, e.g.:
-    // List<Password> findAllByUser(User user);
+@Repository
+public interface PasswordRepository extends JpaRepository<Password, UUID> {
 }

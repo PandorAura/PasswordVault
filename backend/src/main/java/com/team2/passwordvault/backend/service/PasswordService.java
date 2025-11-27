@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,33 +19,34 @@ public class PasswordService {
     private final PasswordRepository passwordRepository;
     private final UserRepository userRepository;
 
-    // For now, we hardcode the user ID for testing purposes (ID 1, which you inserted)
-    private static final Long TEST_USER_ID = 1L;
-
     public Password saveNewPassword(PasswordRequest request) {
-        // 1. Fetch the User (required for the @ManyToOne relationship)
-        Optional<User> userOptional = userRepository.findById(TEST_USER_ID);
+        Optional<User> userOptional = userRepository.findById(request.getUserId());
         if (userOptional.isEmpty()) {
-            throw new RuntimeException("Test user not found with ID: " + TEST_USER_ID);
+            throw new RuntimeException("Test user not found with ID: " + request.getUserId());
         }
         User user = userOptional.get();
 
-        // 2. Map DTO to Entity (Saving the password RAW as requested)
         Password newEntry = new Password();
-        // newEntry.setTitle(request.getTitle());
-        // newEntry.setUsername(request.getUsername());
+        newEntry.setTitle(request.getTitle());
+        newEntry.setUsernameOrEmail(request.getUsername());
         newEntry.setPassword(request.getPassword());
         newEntry.setWebsiteUrl(request.getUrl());
-        newEntry.setCategory(PasswordCategory.valueOf(request.getCategory()));
+
+        if (request.getCategory() != null && !request.getCategory().isBlank()) {
+            try {
+                newEntry.setCategory(PasswordCategory.valueOf(request.getCategory().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                newEntry.setCategory(PasswordCategory.OTHER);
+            }
+        } else {
+            newEntry.setCategory(PasswordCategory.OTHER);
+        }
         // strength ??
         newEntry.setNotes(request.getNotes());
         newEntry.setUser(user); // Set the relationship owner
 
-        // IMPORTANT: Update the User's collection to maintain bidirectionality
-        // This is necessary if you use orphanRemoval=true
         user.getVaultEntries().add(newEntry);
 
-        // 3. Save the new entry
         return passwordRepository.save(newEntry);
     }
 }
