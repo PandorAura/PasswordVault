@@ -1,5 +1,9 @@
 package com.team2.passwordvault.backend.security;
 
+// Purpose: JWT authentication filter. Extracts a Bearer token from the Authorization header,
+// validates it via JwtService, and if valid populates the Spring SecurityContext with the
+// authenticated user for downstream controllers and services.
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Extract the Bearer token from the Authorization header. The token should be a well-formed
+        // JWT (compact serialized). Validation (signature/expiry/etc.) is performed by JwtService.
         String jwt = authHeader.substring(7);
         String username = jwtService.extractUsername(jwt);
 

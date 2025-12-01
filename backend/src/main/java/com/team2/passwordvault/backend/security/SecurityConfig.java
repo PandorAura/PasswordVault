@@ -1,5 +1,7 @@
 package com.team2.passwordvault.backend.security;
 
+// Purpose: Security configuration for the backend. Configures JWT filter, stateless session
+// management, and CORS. Update CORS origins and JWT settings for production deployments.
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,6 +58,8 @@ public class SecurityConfig {
     }
 
 
+    // CORS configuration: currently allows the frontend dev origin. Update this list before
+    // deploying to production (use env/config to manage allowed origins).
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

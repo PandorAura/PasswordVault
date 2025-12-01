@@ -33,7 +33,6 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
 
-        // Create and save user
         User user = User.builder()
                 .name(request.name())
                 .email(request.email())
@@ -61,7 +60,7 @@ public class AuthController {
                 request.email(),
                 request.password()
         );
-        authenticationManager.authenticate(authToken); // throws if invalid
+        authenticationManager.authenticate(authToken);
 
 
         User user = userRepository.findByEmail(request.email())
