@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { TextField, Button, Alert, Stack } from "@mui/material";
+import { TextField, Button, Alert, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "./authSlice";
-import apiClient from "../../utils/apiClient"; 
+import { loginRequest, registerRequest } from "./authApi";
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -19,8 +22,14 @@ export default function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isRegisterMode && !name) {
+      setMessage("Please enter your name.");
+      setIsSuccess(false);
+      return;
+    }
+
     if (!email || !password) {
-      setMessage("Please fill in both fields.");
+      setMessage("Please fill in all fields.");
       setIsSuccess(false);
       return;
     }
@@ -29,46 +38,67 @@ export default function LoginForm() {
       setIsLoading(true);
       setMessage("");
 
-      const response = await apiClient.post("/api/auth/login", {
-        email,
-        password,
-      });
+      let result;
+      if (isRegisterMode) {
+        result = await registerRequest(name, email, password);
+      } else {
+        result = await loginRequest(email, password);
+      }
 
-      const { token } = response.data;
+      const { email: userEmail, token } = result;
 
-      // Store token in localStorage
-      localStorage.setItem("authToken", token);
-
-      // Update Redux state (you can store email + token)
       dispatch(
         login({
-          email,
+          email: userEmail,
           token,
         })
       );
 
       setIsSuccess(true);
-      setMessage("Login successful!");
+      setMessage(
+        isRegisterMode ? "Registration successful!" : "Login successful!"
+      );
 
-      // Redirect after short delay
       setTimeout(() => navigate("/vault"), 600);
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Auth error:", error);
       setIsSuccess(false);
 
-      if (error.response && error.response.status === 400) {
-        setMessage("Invalid credentials.");
+      if (error.response?.status === 400) {
+        setMessage("Invalid credentials or data.");
+      } else if (error.response?.status === 409) {
+        setMessage("Email already exists.");
       } else {
-        setMessage("Error logging in. Please try again.");
+        setMessage("Error. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const toggleMode = () => {
+    setIsRegisterMode((prev) => !prev);
+    setMessage("");
+    setIsSuccess(null);
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       <Stack spacing={2}>
+        <Typography variant="h5" textAlign="center">
+          {isRegisterMode ? "Create an account" : "Login"}
+        </Typography>
+
+        {isRegisterMode && (
+          <TextField
+            label="Name"
+            variant="outlined"
+            fullWidth
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        )}
+
         <TextField
           label="Email"
           type="email"
@@ -88,23 +118,31 @@ export default function LoginForm() {
         />
 
         {message && (
-          <Alert
-            severity={isSuccess ? "success" : "error"}
-            sx={{ borderRadius: 2 }}
-          >
+          <Alert severity={isSuccess ? "success" : "error"}>
             {message}
           </Alert>
         )}
 
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          fullWidth
-          disabled={isLoading}
-        >
-          {isLoading ? "Logging in..." : "Login"}
+        <Button type="submit" variant="contained" fullWidth disabled={isLoading}>
+          {isLoading
+            ? isRegisterMode
+              ? "Registering..."
+              : "Logging in..."
+            : isRegisterMode
+            ? "Register"
+            : "Login"}
         </Button>
+
+        <Typography
+          variant="body2"
+          textAlign="center"
+          sx={{ cursor: "pointer" }}
+          onClick={toggleMode}
+        >
+          {isRegisterMode
+            ? "Already have an account? Login"
+            : "Don't have an account? Register"}
+        </Typography>
       </Stack>
     </form>
   );
