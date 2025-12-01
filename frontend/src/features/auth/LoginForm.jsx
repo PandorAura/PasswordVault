@@ -47,6 +47,10 @@ export default function LoginForm() {
 
       const { email: userEmail, token } = result;
 
+      // Store token in localStorage
+      localStorage.setItem("authToken", token);
+
+      // Update Redux state (you can store email + token)
       dispatch(
         login({
           email: userEmail,
