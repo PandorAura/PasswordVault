@@ -1,24 +1,22 @@
-// src/features/auth/LoginForm.jsx
 import React, { useState } from "react";
 import { TextField, Button, Alert, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "./authSlice";
-
-// Hardcoded credentials
-const VALID_EMAIL = "user@example.com";
-const VALID_PASSWORD = "user";
+import apiClient from "../../utils/apiClient"; 
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -27,20 +25,44 @@ export default function LoginForm() {
       return;
     }
 
-    if (email === VALID_EMAIL && password === VALID_PASSWORD) {
-      setMessage("Login successful!");
-      setIsSuccess(true);
+    try {
+      setIsLoading(true);
+      setMessage("");
 
+      const response = await apiClient.post("/api/auth/login", {
+        email,
+        password,
+      });
+
+      const { token } = response.data;
+
+      // Store token in localStorage
+      localStorage.setItem("authToken", token);
+
+      // Update Redux state (you can store email + token)
       dispatch(
         login({
           email,
+          token,
         })
       );
 
+      setIsSuccess(true);
+      setMessage("Login successful!");
+
+      // Redirect after short delay
       setTimeout(() => navigate("/vault"), 600);
-    } else {
-      setMessage("Incorrect email or password.");
+    } catch (error) {
+      console.error("Login error:", error);
       setIsSuccess(false);
+
+      if (error.response && error.response.status === 400) {
+        setMessage("Invalid credentials.");
+      } else {
+        setMessage("Error logging in. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -74,8 +96,14 @@ export default function LoginForm() {
           </Alert>
         )}
 
-        <Button type="submit" variant="contained" size="large" fullWidth>
-          Login
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={isLoading}
+        >
+          {isLoading ? "Logging in..." : "Login"}
         </Button>
       </Stack>
     </form>
