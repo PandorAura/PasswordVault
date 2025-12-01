@@ -28,7 +28,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        // If email already exists, return 400 (you can customize this later)
+
         if (userRepository.findByEmail(request.email()).isPresent()) {
             return ResponseEntity.badRequest().build();
         }
@@ -56,16 +56,16 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        // Let Spring Security validate email + password
+
         var authToken = new UsernamePasswordAuthenticationToken(
                 request.email(),
                 request.password()
         );
         authenticationManager.authenticate(authToken); // throws if invalid
 
-        // If we’re here, credentials are valid
+
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(); // shouldn't happen if authenticate succeeded
+                .orElseThrow();
 
         UserDetails userDetails = org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
