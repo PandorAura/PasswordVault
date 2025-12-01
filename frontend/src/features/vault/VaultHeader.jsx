@@ -5,7 +5,6 @@ import {
   Button,
   Paper,
   Stack,
-  IconButton,
 } from "@mui/material";
 
 import FileUploadIcon from "@mui/icons-material/FileUpload";
@@ -13,8 +12,9 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import AddIcon from "@mui/icons-material/Add";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
-export default function VaultHeader({ onOpenModal }) {
+export default function VaultHeader({ onOpenModal, onLogout }) {
   return (
     <Paper
       elevation={0}
@@ -57,12 +57,16 @@ export default function VaultHeader({ onOpenModal }) {
 
       {/* RIGHT SIDE BUTTONS */}
       <Stack direction="row" spacing={2}>
-
         <Button
           variant="outlined"
           startIcon={<AddIcon />}
           onClick={onOpenModal}
-          sx={{ color: "white", borderRadius: "10px", textTransform: "none", backgroundColor: "black" }}
+          sx={{
+            color: "white",
+            borderRadius: "10px",
+            textTransform: "none",
+            backgroundColor: "black",
+          }}
         >
           Add Password
         </Button>
@@ -85,10 +89,19 @@ export default function VaultHeader({ onOpenModal }) {
 
         <Button
           variant="outlined"
-          startIcon={<LogoutIcon />}
+          startIcon={<LockOutlinedIcon />}
           sx={{ borderRadius: "10px", textTransform: "none" }}
         >
           Lock Vault
+        </Button>
+
+        <Button
+          variant="outlined"
+          startIcon={<LogoutIcon />}
+          sx={{ borderRadius: "10px", textTransform: "none" }}
+          onClick={onLogout}
+        >
+          Logout
         </Button>
       </Stack>
     </Paper>
