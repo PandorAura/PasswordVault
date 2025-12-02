@@ -4,12 +4,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: null,
-    isAuthenticated: false,
-    token: null, // NEW: store JWT token if you want to use it from Redux. Aveti de grija dragi prieteni si cititi pe aicia
+    isAuthenticated: !!localStorage.getItem("authToken"),
+    token: localStorage.getItem("authToken"),
   },
   reducers: {
     login: (state, action) => {
-      // - { email, token }   
+      // - { email, token }
       const { email, token, ...rest } = action.payload || {};
 
       // keep backward compatibility: user is still an object with at least email
@@ -32,6 +32,7 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       state.token = null;
+      localStorage.removeItem("authToken");
     },
   },
 });
