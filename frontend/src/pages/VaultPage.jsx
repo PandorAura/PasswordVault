@@ -2,6 +2,7 @@ import VaultHeader from "../features/vault/VaultHeader";
 import VaultList from "../features/vault/VaultList";
 import AddPasswordModal from "../features/vault/AddPasswordModal";
 import EditPasswordModal from "../features/vault/EditPasswordModal";
+import VaultToolbar from "../features/vault/VaultToolbar";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,9 +10,11 @@ import { logout } from "../features/auth/authSlice";
 
 export default function VaultPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -28,9 +31,15 @@ export default function VaultPage() {
 
   return (
     <div>
-      <VaultHeader
+      <VaultHeader onLogout={handleLogout} />
+
+      <VaultToolbar
+        search={search}
+        setSearch={setSearch}
+        category={category}
+        setCategory={setCategory}
         onOpenModal={() => setIsModalOpen(true)}
-        onLogout={handleLogout}
+        onCheckBreaches={() => console.log("Check breaches clicked")}
       />
 
       <VaultList onEditItem={handleEditItem} />

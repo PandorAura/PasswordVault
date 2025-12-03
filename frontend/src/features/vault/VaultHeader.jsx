@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Stack,
-} from "@mui/material";
+import { Box, Typography, Button, Paper, Stack } from "@mui/material";
 
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
@@ -14,7 +8,7 @@ import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 
-export default function VaultHeader({ onOpenModal, onLogout }) {
+export default function VaultHeader({ onLogout }) {
   return (
     <Paper
       elevation={0}
@@ -57,20 +51,6 @@ export default function VaultHeader({ onOpenModal, onLogout }) {
 
       {/* RIGHT SIDE BUTTONS */}
       <Stack direction="row" spacing={2}>
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={onOpenModal}
-          sx={{
-            color: "white",
-            borderRadius: "10px",
-            textTransform: "none",
-            backgroundColor: "black",
-          }}
-        >
-          Add Password
-        </Button>
-
         <Button
           variant="outlined"
           startIcon={<FileUploadIcon />}
