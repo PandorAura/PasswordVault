@@ -1,13 +1,14 @@
+
 import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#6366F1", 
+      main: "#6366F1",
     },
     background: {
-      default: "#EEF2FF", 
+      default: "#EEF2FF",
       paper: "#FFFFFF",
     },
     text: {
@@ -25,11 +26,10 @@ const theme = createTheme({
   },
 
   shape: {
-    borderRadius: 12, // rounded corners everywhere
+    borderRadius: 12,
   },
 
   components: {
-    // All Buttons
     MuiButton: {
       styleOverrides: {
         root: {
@@ -40,10 +40,18 @@ const theme = createTheme({
           paddingRight: 16,
           fontWeight: 500,
         },
+
+        outlined: {
+          borderColor: "#E5E7EB",
+          backgroundColor: "#FFFFFF",
+          "&:hover": {
+            borderColor: "#CBD5E1",
+            backgroundColor: "#F9FAFB",
+          },
+        },
       },
     },
 
-    // Input fields (Search bar, forms)
     MuiTextField: {
       styleOverrides: {
         root: {
@@ -53,7 +61,6 @@ const theme = createTheme({
       },
     },
 
-    // Paper (cards)
     MuiPaper: {
       styleOverrides: {
         root: {
@@ -63,7 +70,6 @@ const theme = createTheme({
       },
     },
 
-    // AppBar/Header styling
     MuiAppBar: {
       styleOverrides: {
         root: {
@@ -73,13 +79,15 @@ const theme = createTheme({
         },
       },
     },
+
     MuiTabs: {
       styleOverrides: {
         indicator: {
           backgroundColor: "#6366F1",
         },
       },
-  },
+    },
+
     MuiTab: {
       styleOverrides: {
         root: {
@@ -87,7 +95,33 @@ const theme = createTheme({
           fontWeight: 500,
         },
       },
-  },
+    },
+
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          fontFamily: "'Inter', sans-serif",
+          fontSize: "0.95rem",
+          paddingTop: 10,
+          paddingBottom: 10,
+          borderRadius: 6,
+          transition: "background-color 0.15s ease",
+
+          "&.Mui-selected": {
+            backgroundColor: "#EEF2FF !important",
+            color: "#6366F1",
+          },
+
+          "&.Mui-selected:hover": {
+            backgroundColor: "#E0E7FF !important",
+          },
+
+          "&:hover": {
+            backgroundColor: "#F3F4F6",
+          },
+        },
+      },
+    },
   },
 });
 
