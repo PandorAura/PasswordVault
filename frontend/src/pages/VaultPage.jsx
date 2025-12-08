@@ -1,8 +1,8 @@
-import VaultHeader from "../features/vault/VaultHeader";
-import VaultList from "../features/vault/VaultList";
-import AddPasswordModal from "../features/vault/AddPasswordModal";
-import EditPasswordModal from "../features/vault/EditPasswordModal";
-import VaultToolbar from "../features/vault/VaultToolbar";
+import VaultHeader from "../features/vault/components/VaultHeader";
+import VaultList from "../features/vault/components/VaultList";
+import AddPasswordModal from "../features/vault/components/AddPasswordModal";
+import EditPasswordModal from "../features/vault/components/EditPasswordModal";
+import VaultToolbar from "../features/vault/components/VaultToolbar";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";

@@ -7,8 +7,12 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { useSelector } from "react-redux";
 
 export default function VaultHeader({ onLogout }) {
+  const items = useSelector((state) => state.vault.items);
+  const count = items?.length || 0;
+
   return (
     <Paper
       elevation={0}
@@ -44,7 +48,7 @@ export default function VaultHeader({ onLogout }) {
             Password Vault
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            0 passwords stored
+            {count} password{count !== 1 ? "s" : ""} stored
           </Typography>
         </Box>
       </Box>
