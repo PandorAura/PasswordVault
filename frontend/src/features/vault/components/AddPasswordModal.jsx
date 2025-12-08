@@ -15,8 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { addItem } from "./vaultSlice";
-import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
+import { addItem } from "../vaultSlice";
+import { calculatePasswordStrength } from "../../../utils/passwordStregthCalculator";
 
 export default function AddPasswordModal({ open, onClose }) {
   const dispatch = useDispatch();
