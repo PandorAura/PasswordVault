@@ -1,4 +1,4 @@
-package com.team2.passwordvault.backend.dto;
+package com.team2.passwordvault.backend.controller.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -6,16 +6,11 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.UUID;
-
 @Data
 @Value
 @Builder(toBuilder = true)
 @Jacksonized
 public class PasswordRequest {
-
-    @NotBlank
-    UUID userId;
 
     @NotBlank(message = "Title is required")
     String title;

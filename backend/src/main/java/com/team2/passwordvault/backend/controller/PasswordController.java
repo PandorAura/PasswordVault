@@ -1,6 +1,6 @@
 package com.team2.passwordvault.backend.controller;
 
-import com.team2.passwordvault.backend.dto.PasswordRequest;
+import com.team2.passwordvault.backend.controller.dto.PasswordRequest;
 import com.team2.passwordvault.backend.model.Password;
 import com.team2.passwordvault.backend.service.PasswordService;
 import lombok.RequiredArgsConstructor;
@@ -8,8 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/passwords")

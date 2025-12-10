@@ -1,16 +1,14 @@
 package com.team2.passwordvault.backend.service;
 
-import com.team2.passwordvault.backend.dto.PasswordRequest;
+import com.team2.passwordvault.backend.controller.dto.PasswordRequest;
 import com.team2.passwordvault.backend.enums.PasswordCategory;
 import com.team2.passwordvault.backend.model.Password;
 import com.team2.passwordvault.backend.model.User;
 import com.team2.passwordvault.backend.repository.PasswordRepository;
 import com.team2.passwordvault.backend.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder; // <-- IMPORT THIS
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,18 +18,22 @@ public class PasswordService {
     private final UserRepository userRepository;
 
     public Password saveNewPassword(PasswordRequest request) {
-        Optional<User> userOptional = userRepository.findById(request.getUserId());
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("Test user not found with ID: " + request.getUserId());
-        }
-        User user = userOptional.get();
 
+        // 1. Get the email of the currently logged-in user from Spring Security
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // 2. Find the user in the database by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        // 3. Map DTO to Entity
         Password newEntry = new Password();
         newEntry.setTitle(request.getTitle());
         newEntry.setUsernameOrEmail(request.getUsername());
         newEntry.setPassword(request.getPassword());
         newEntry.setWebsiteUrl(request.getUrl());
 
+        // Category Logic
         if (request.getCategory() != null && !request.getCategory().isBlank()) {
             try {
                 newEntry.setCategory(PasswordCategory.valueOf(request.getCategory().toUpperCase()));
@@ -41,10 +43,11 @@ public class PasswordService {
         } else {
             newEntry.setCategory(PasswordCategory.OTHER);
         }
-        // strength ??
-        newEntry.setNotes(request.getNotes());
-        newEntry.setUser(user); // Set the relationship owner
 
+        newEntry.setNotes(request.getNotes());
+
+        // 4. Set the relationship
+        newEntry.setUser(user);
         user.getVaultEntries().add(newEntry);
 
         return passwordRepository.save(newEntry);
