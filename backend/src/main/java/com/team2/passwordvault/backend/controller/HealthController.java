@@ -16,7 +16,7 @@ public class HealthController {
     @GetMapping
     public String status() {
         try {
-            Query query = entityManager.createNativeQuery("SELECT text FROM test_table WHERE id = 1");
+            Query query = entityManager.createNativeQuery("SELECT email FROM users WHERE id = 1");
             Object result = query.getSingleResult();
             return "Backend running - Found record with id=1: text=" + result;
         } catch (Exception e) {

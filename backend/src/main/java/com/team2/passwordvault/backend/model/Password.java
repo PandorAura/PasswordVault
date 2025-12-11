@@ -1,5 +1,6 @@
 package com.team2.passwordvault.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.team2.passwordvault.backend.enums.PasswordCategory;
 import com.team2.passwordvault.backend.enums.PasswordStrength;
 import jakarta.persistence.*;
@@ -23,6 +24,7 @@ public class Password {
     @JoinColumn(name = "user_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnore
     private User user;
 
     @Column(nullable = false)
