@@ -1,0 +1,11 @@
+ALTER TABLE passwords
+ADD COLUMN title VARCHAR(255);
+
+ALTER TABLE passwords
+ADD COLUMN username_email VARCHAR(255);
+
+ALTER TABLE passwords
+MODIFY COLUMN title VARCHAR(255) NOT NULL;
+
+ALTER TABLE passwords
+MODIFY COLUMN username_email VARCHAR(255) NOT NULL;

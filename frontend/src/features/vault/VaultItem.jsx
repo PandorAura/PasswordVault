@@ -15,7 +15,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
-export default function VaultItem({ item }) {
+export default function VaultItem({ item, onEdit }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const strengthStyles = {
@@ -112,7 +112,7 @@ export default function VaultItem({ item }) {
 
         {/* Icons (Edit/Delete) */}
         <Stack direction="row" spacing={1}>
-          <IconButton size="small">
+          <IconButton size="small" onClick={() => onEdit(item)}>
             <EditIcon fontSize="small" />
           </IconButton>
           <IconButton size="small" color="error">
@@ -130,8 +130,11 @@ export default function VaultItem({ item }) {
             Username:
           </Typography>
           <Typography sx={{ fontWeight: 500 }}>{item.username}</Typography>
-
-          <IconButton size="small" sx={{ marginLeft: 1 }}>
+          <IconButton
+            size="small"
+            sx={{ marginLeft: 1 }}
+            onClick={() => navigator.clipboard.writeText(item.username)}
+          >
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -158,7 +161,10 @@ export default function VaultItem({ item }) {
             )}
           </IconButton>
 
-          <IconButton size="small">
+          <IconButton
+            size="small"
+            onClick={() => navigator.clipboard.writeText(item.password)}
+          >
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Box>

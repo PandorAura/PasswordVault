@@ -19,14 +19,41 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // --- Spring Boot Core ---
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // --- Data & Database ---
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
+
+    // MySQL Driver (Only needed at runtime)
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // Utilities
     implementation 'io.github.cdimascio:dotenv-java:3.0.0'
-    implementation 'com.mysql:mysql-connector-j'
+
+    // --- Security & JWT ---
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // --- Lombok (Version managed by Spring Boot) ---
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Lombok for Test classes
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // --- Testing ---
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // H2 Database for Integration Tests (Only needed at runtime)
+    testRuntimeOnly 'com.h2database:h2'
 }
 
 tasks.named('test') {
