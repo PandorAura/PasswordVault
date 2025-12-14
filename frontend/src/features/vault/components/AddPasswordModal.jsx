@@ -98,8 +98,18 @@ export default function AddPasswordModal({ open, onClose }) {
       }
 
       // 4. Get the real saved object from DB
-      const savedData = await response.json();
-      const strength = calculatePasswordStrength(savedData.password);
+    const savedData = await response.json();
+
+    const strength = calculatePasswordStrength(form.password);
+
+    dispatch(
+      addItem({
+        ...savedData,
+        password: form.password, // keep only in memory
+        strength,
+      })
+    );
+
 
       // 5. Update Redux with real DB data
       dispatch(

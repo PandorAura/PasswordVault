@@ -77,7 +77,13 @@ export default function LoginForm() {
         isRegisterMode ? "Registration successful!" : "Login successful!"
       );
 
-      setTimeout(() => navigate("/vault", { replace: true }), 600);
+      setTimeout(
+        () =>
+          isRegisterMode
+            ? navigate("/create-master", { replace: true })
+            : navigate("/check-master", { replace: true }),
+        600
+      );
     } catch (error) {
       console.error("Auth error:", error);
       setIsSuccess(false);

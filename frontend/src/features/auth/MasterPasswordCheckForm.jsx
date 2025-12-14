@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { deriveSecrets, setStoredKey } from "../../utils/cryptoUtils";
 
 export function MasterPasswordCheckForm({ onSuccess }) {
   const [password, setPassword] = useState("");
@@ -25,23 +26,81 @@ export function MasterPasswordCheckForm({ onSuccess }) {
     event.preventDefault();
   };
 
+  const getUserEmailFromToken = () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return null;
+    try {
+      // Decode the payload (2nd part of JWT)
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload).sub;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
     setIsLoading(true);
 
-    const MOCK_PASSWORD = "master-password";
+    try {
+      const token = localStorage.getItem("authToken");
+      const email = getUserEmailFromToken();
 
-    if (password === MOCK_PASSWORD) {
-      setTimeout(() => {
-        setIsLoading(false);
+      if (!token || !email) {
+        throw new Error("Session expired. Please log in again.");
+      }
+
+      // 1. Fetch the Salt and AuthHash from the server
+      // We need these to verify the password locally
+      const response = await fetch(
+        `http://localhost:8080/api/vault/params?email=${email}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error("Vault not set up yet.");
+        }
+        throw new Error("Failed to retrieve vault parameters.");
+      }
+
+      const { salt, authHash: serverAuthHash } = await response.json();
+
+      // 2. Run the heavy calculation (Argon2)
+      // This regenerates the keys based on what the user just typed
+      const { authHash: calculatedAuthHash, encryptionKey } =
+        await deriveSecrets(password, salt);
+
+      // 3. Client-Side Verification
+      // We compare what we just calculated vs what the server has stored
+      if (calculatedAuthHash === serverAuthHash) {
+        // Save the Encryption Key to RAM so the app can decrypt data
+        setStoredKey(encryptionKey);
         if (onSuccess) onSuccess();
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        setIsLoading(false);
-        setError("Incorrect Master Password. Please try again.");
-      }, 1000);
+      } else {
+        throw new Error("Incorrect Master Password.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+      // If verification failed, make sure no key is stored
+      setStoredKey(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 

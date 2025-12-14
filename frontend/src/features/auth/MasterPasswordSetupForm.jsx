@@ -14,6 +14,11 @@ import WarningIcon from "@mui/icons-material/Warning";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
+import {
+  generateSalt,
+  deriveSecrets,
+  setStoredKey,
+} from "../../utils/cryptoUtils";
 
 export default function MasterPasswordSetupForm({ onSuccess }) {
   const [password, setPassword] = useState("");
@@ -74,17 +79,39 @@ export default function MasterPasswordSetupForm({ onSuccess }) {
     }
 
     setIsLoading(true);
+    const token = localStorage.getItem("authToken");
+    try {
+      // 1. Generate Salt
+      const salt = generateSalt();
 
-    localStorage.setItem("master_password_set", "true"); // mock saving the key
+      // 2. Run Argon2 (Heavy calculation)
+      // This gives us the EK (keep local) and AH (send to server)
+      const { authHash, encryptionKey } = await deriveSecrets(password, salt);
 
-    setTimeout(() => {
+      // 3. Send to your NEW endpoint
+      // Note: User must already be logged in (have a JWT) for this to work
+      const response = await fetch("http://localhost:8080/api/vault/setup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          salt: salt,
+          authHash: authHash,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Vault setup failed");
+
+      setStoredKey(encryptionKey);
+
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-      setPassword("");
-      setConfirmPassword("");
-      if (onSuccess) {
-        onSuccess();
-      }
-    }, 1000);
+    }
   };
   return (
     <form onSubmit={handleSubmit}>
