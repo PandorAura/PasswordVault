@@ -7,7 +7,7 @@ export default function LoginPage() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   if (isAuthenticated) {
-    return <Navigate to="/vault" replace />;
+    return <Navigate to="/check-master" replace />;
   }
 
   return (
