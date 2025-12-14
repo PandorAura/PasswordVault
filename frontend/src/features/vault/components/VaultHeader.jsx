@@ -73,19 +73,11 @@ export default function VaultHeader({ onLogout }) {
 
         <Button
           variant="outlined"
-          startIcon={<LockOutlinedIcon />}
-          sx={{ borderRadius: "10px", textTransform: "none" }}
-        >
-          Lock Vault
-        </Button>
-
-        <Button
-          variant="outlined"
           startIcon={<LogoutIcon />}
           sx={{ borderRadius: "10px", textTransform: "none" }}
           onClick={onLogout}
         >
-          Logout
+         Lock Vault
         </Button>
       </Stack>
     </Paper>
