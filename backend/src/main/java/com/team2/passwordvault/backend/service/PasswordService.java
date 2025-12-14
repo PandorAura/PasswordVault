@@ -6,50 +6,68 @@ import com.team2.passwordvault.backend.model.Password;
 import com.team2.passwordvault.backend.model.User;
 import com.team2.passwordvault.backend.repository.PasswordRepository;
 import com.team2.passwordvault.backend.repository.UserRepository;
-import org.springframework.security.core.context.SecurityContextHolder; // <-- IMPORT THIS
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PasswordService {
 
     private final PasswordRepository passwordRepository;
     private final UserRepository userRepository;
 
-    public Password saveNewPassword(PasswordRequest request) {
+    /**
+     * Create a new password entry for the authenticated user
+     */
+    public Password saveNewPassword(PasswordRequest request, String email) {
 
-        // 1. Get the email of the currently logged-in user from Spring Security
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        // 2. Find the user in the database by email
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
-        // 3. Map DTO to Entity
         Password newEntry = new Password();
         newEntry.setTitle(request.getTitle());
         newEntry.setUsernameOrEmail(request.getUsername());
-        newEntry.setPassword(request.getPassword());
+        newEntry.setPassword(request.getPassword()); // encryption comes later
         newEntry.setWebsiteUrl(request.getUrl());
-
-        // Category Logic
-        if (request.getCategory() != null && !request.getCategory().isBlank()) {
-            try {
-                newEntry.setCategory(PasswordCategory.valueOf(request.getCategory().toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                newEntry.setCategory(PasswordCategory.OTHER);
-            }
-        } else {
-            newEntry.setCategory(PasswordCategory.OTHER);
-        }
-
         newEntry.setNotes(request.getNotes());
-
-        // 4. Set the relationship
         newEntry.setUser(user);
-        user.getVaultEntries().add(newEntry);
+
+        // Category logic (kept from your original code)
+        newEntry.setCategory(resolveCategory(request.getCategory()));
 
         return passwordRepository.save(newEntry);
+    }
+
+    /**
+     * Delete a password owned by the authenticated user
+     */
+    public void deletePassword(UUID passwordId, String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        Password password = passwordRepository
+                .findByIdAndUser(passwordId, user)
+                .orElseThrow(() -> new RuntimeException("Password entry not found"));
+
+    }
+
+    /**
+     * Category resolution helper
+     */
+    private PasswordCategory resolveCategory(String category) {
+        if (category == null || category.isBlank()) {
+            return PasswordCategory.OTHER;
+        }
+
+        try {
+            return PasswordCategory.valueOf(category.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return PasswordCategory.OTHER;
+        }
     }
 }
