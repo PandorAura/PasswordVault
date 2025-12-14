@@ -10,17 +10,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -35,39 +31,27 @@ class PasswordServiceIntegrationTest {
     @Autowired
     private PasswordRepository passwordRepository;
 
-    private User savedUser; // Hold the full user object
+    private User savedUser;
+    private String userEmail;
 
     @BeforeEach
     void setupTestUser() {
-        // 1. Create a FRESH user.
-        // DO NOT set the ID manually. Let Hibernate generate it.
-        User testUser = new User();
-        String uniqueEmail = "test.user." + UUID.randomUUID() + "@example.com";
 
+        userEmail = "test.user." + UUID.randomUUID() + "@example.com";
+
+        User testUser = new User();
         testUser.setName("Test user");
-        testUser.setEmail(uniqueEmail);
-        testUser.setPasswordHash("dummyHash"); // Required if column is NOT NULL
+        testUser.setEmail(userEmail);
+        testUser.setPasswordHash("dummyHash");
         testUser.setCreatedAt(Instant.now());
         testUser.setUpdatedAt(Instant.now());
 
-        // 2. Save it.
         savedUser = userRepository.saveAndFlush(testUser);
-
-        // 3. MOCK THE SECURITY CONTEXT
-        // This tells Spring Security: "This user is currently logged in"
-        // The Service layer will read this email to find the user in the DB.
-        var authToken = new UsernamePasswordAuthenticationToken(
-                uniqueEmail, // The principal (must match DB email)
-                null,
-                Collections.emptyList() // Authorities (Roles)
-        );
-        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 
     @Test
     void saveNewPassword_shouldPersistDataCorrectly() {
         // ARRANGE
-        // Note: userId is REMOVED from the builder
         PasswordRequest request = PasswordRequest.builder()
                 .title("Test Pass")
                 .username("test_username")
@@ -75,16 +59,33 @@ class PasswordServiceIntegrationTest {
                 .build();
 
         // ACT
-        // The service now pulls the User ID automatically from the SecurityContext
-        Password savedEntry = passwordService.saveNewPassword(request);
+        Password savedEntry = passwordService.saveNewPassword(request, userEmail);
 
         // ASSERT
         Optional<Password> found = passwordRepository.findById(savedEntry.getId());
 
-        assertTrue(found.isPresent(), "Saved password should be retrievable by ID.");
+        assertTrue(found.isPresent(), "Saved password should exist");
         assertEquals("test_raw_password", found.get().getPassword());
-
-        // Verify it was linked to the correct user we created in setup
         assertEquals(savedUser.getId(), found.get().getUser().getId());
+    }
+
+    @Test
+    void deletePassword_shouldSoftDeleteEntry() {
+        // ARRANGE
+        PasswordRequest request = PasswordRequest.builder()
+                .title("To be deleted")
+                .username("delete_user")
+                .password("delete_pass")
+                .build();
+
+        Password savedEntry = passwordService.saveNewPassword(request, userEmail);
+
+        // ACT
+        passwordService.deletePassword(savedEntry.getId(), userEmail);
+
+        // ASSERT
+        Password deleted = passwordRepository.findById(savedEntry.getId())
+                .orElseThrow();
+
     }
 }
