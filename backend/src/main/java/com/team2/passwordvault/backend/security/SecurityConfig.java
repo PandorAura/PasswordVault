@@ -76,7 +76,8 @@ public class SecurityConfig {
                 "Content-Type",
                 "X-Requested-With",
                 "Accept",
-                "Origin"
+                "Origin",
+                "X-Master-Password"
         ));
 
 

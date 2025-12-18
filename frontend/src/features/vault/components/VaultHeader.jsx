@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Stack,
-} from "@mui/material";
+import { Box, Typography, Button, Paper, Stack } from "@mui/material";
 
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
@@ -13,8 +7,12 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { useSelector } from "react-redux";
 
-export default function VaultHeader({ onOpenModal, onLogout }) {
+export default function VaultHeader({ onLogout }) {
+  const items = useSelector((state) => state.vault.items);
+  const count = items?.length || 0;
+
   return (
     <Paper
       elevation={0}
@@ -50,27 +48,13 @@ export default function VaultHeader({ onOpenModal, onLogout }) {
             Password Vault
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            0 passwords stored
+            {count} password{count !== 1 ? "s" : ""} stored
           </Typography>
         </Box>
       </Box>
 
       {/* RIGHT SIDE BUTTONS */}
       <Stack direction="row" spacing={2}>
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={onOpenModal}
-          sx={{
-            color: "white",
-            borderRadius: "10px",
-            textTransform: "none",
-            backgroundColor: "black",
-          }}
-        >
-          Add Password
-        </Button>
-
         <Button
           variant="outlined"
           startIcon={<FileUploadIcon />}
@@ -89,19 +73,11 @@ export default function VaultHeader({ onOpenModal, onLogout }) {
 
         <Button
           variant="outlined"
-          startIcon={<LockOutlinedIcon />}
-          sx={{ borderRadius: "10px", textTransform: "none" }}
-        >
-          Lock Vault
-        </Button>
-
-        <Button
-          variant="outlined"
           startIcon={<LogoutIcon />}
           sx={{ borderRadius: "10px", textTransform: "none" }}
           onClick={onLogout}
         >
-          Logout
+         Lock Vault
         </Button>
       </Stack>
     </Paper>
