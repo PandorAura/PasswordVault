@@ -23,7 +23,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useDispatch } from "react-redux";
-import { removeItem } from "../vaultSlice";
+import { deletePassword } from "../vaultSlice";
 import { sha256 } from "hash-wasm";
 
 export default function VaultItem({ item, onEdit }) {
@@ -45,45 +45,30 @@ export default function VaultItem({ item, onEdit }) {
     "very strong": { bg: "#DCFCE7", color: "#15803D" },
   };
 
-  const handleDelete = async () => {
-    if (!masterPassword) {
-      setError("Master password is required");
-      return;
-    }
-
-    try {
-      setDeleting(true);
-      setError(null);
-
-      const token = localStorage.getItem("authToken");
-      if (!token) throw new Error("Not authenticated");
-
-      const masterPasswordHash = await sha256(masterPassword);
-
-      const response = await fetch(
-        `http://localhost:8080/api/passwords/${item.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "X-Master-Password": masterPasswordHash,
-          },
+    const handleDelete = async () => {
+        if (!masterPassword) {
+            setError("Master password is required");
+            return;
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Invalid master password or delete failed");
-      }
+        try {
+            setDeleting(true);
+            const masterPasswordHash = await sha256(masterPassword);
 
-      dispatch(removeItem(item.id));
-      setConfirmOpen(false);
-      setMasterPassword("");
-    } catch (err) {
-      setError(err.message || "Delete failed");
-    } finally {
-      setDeleting(false);
-    }
-  };
+            // Call the Redux Thunk
+            await dispatch(deletePassword({
+                id: item.id,
+                masterPasswordHash
+            })).unwrap();
+
+            setConfirmOpen(false);
+            setMasterPassword("");
+        } catch (err) {
+            setError(err.message || "Invalid master password or delete failed");
+        } finally {
+            setDeleting(false);
+        }
+    };
 
   return (
     <>

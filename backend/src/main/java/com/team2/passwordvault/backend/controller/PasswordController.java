@@ -40,5 +40,17 @@ public class PasswordController {
         passwordService.deletePassword(id, authentication.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Password> updatePassword(
+            @PathVariable UUID id,
+            @Valid @RequestBody PasswordRequest request,
+            Authentication authentication
+    ) {
+        Password updated = passwordService.updatePassword(id, request, authentication.getName());
+        return ResponseEntity.ok(updated);
+
+    }
+
 }
 
