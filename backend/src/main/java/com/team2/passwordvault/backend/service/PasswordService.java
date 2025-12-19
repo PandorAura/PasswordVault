@@ -1,12 +1,16 @@
 package com.team2.passwordvault.backend.service;
 
 import com.team2.passwordvault.backend.controller.dto.PasswordRequest;
+import com.team2.passwordvault.backend.controller.dto.PasswordResponse;
 import com.team2.passwordvault.backend.enums.PasswordCategory;
 import com.team2.passwordvault.backend.model.Password;
 import com.team2.passwordvault.backend.model.User;
 import com.team2.passwordvault.backend.repository.PasswordRepository;
 import com.team2.passwordvault.backend.repository.UserRepository;
+import com.team2.passwordvault.backend.service.mappers.PasswordMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +60,19 @@ public class PasswordService {
                 .orElseThrow(() -> new RuntimeException("Password entry not found"));
 
         passwordRepository.delete(password);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PasswordResponse> getAllPasswords(
+            String email,
+            Pageable pageable
+    ) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        return passwordRepository
+                .findAllByUser(user, pageable)
+                .map(PasswordMapper::toResponse);
     }
 
     /**
