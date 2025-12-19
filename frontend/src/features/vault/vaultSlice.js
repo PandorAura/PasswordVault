@@ -9,27 +9,28 @@ const getAuthHeader = () => ({
 
 // THUNKS
 export const fetchPasswords = createAsyncThunk(
-  "vault/fetch",
-  async ({ page = 0, size = 10 }, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(API_BASE, {
-        ...getAuthHeader(),
-        params: { page, size },
-      });
+    "vault/fetch",
+    async ({ page = 0, size = 6 }, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(API_BASE, {
+                ...getAuthHeader(),
+                params: { page, size },
+            });
 
-      return {
-        items: response.data.content,
-        pageInfo: {
-          totalElements: response.data.totalElements,
-          totalPages: response.data.totalPages,
-          page: response.data.number,
-          size: response.data.size,
-        },
-      };
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
+            // We return the metadata (totalPages, number) + the content
+            return {
+                items: response.data.content.map(item => ({
+                    ...item,
+                    username: item.usernameOrEmail,
+                    url: item.websiteUrl
+                })),
+                totalPages: response.data.totalPages, // CRITICAL
+                currentPage: response.data.number,    // CRITICAL
+            };
+        } catch (err) {
+            return rejectWithValue(err.response?.data || err.message);
+        }
     }
-  }
 );
 
 export const addPassword = createAsyncThunk("vault/add", async (passwordData) => {
@@ -108,11 +109,12 @@ const vaultSlice = createSlice({
       .addCase(fetchPasswords.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchPasswords.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.items = action.payload.items;
-        state.pageInfo = action.payload.pageInfo;
-      })
+        .addCase(fetchPasswords.fulfilled, (state, action) => {
+            state.status = "succeeded";
+            state.items = action.payload.items; // Just the 6 items for this page
+            state.pageInfo.totalPages = action.payload.totalPages;
+            state.pageInfo.currentPage = action.payload.currentPage;
+        })
       .addCase(fetchPasswords.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;

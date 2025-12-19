@@ -1,77 +1,44 @@
-import React, { useState } from "react";
-import { Box, Grid, Typography, Pagination, Stack } from "@mui/material";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { Box, Grid, Typography, Pagination, Stack, CircularProgress } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchPasswords } from "../vaultSlice"; // Ensure this is imported
 import VaultItem from "./VaultItem";
 
 export default function VaultList({ onEditItem }) {
-  const items = useSelector((state) => state.vault.items);
+    const dispatch = useDispatch();
+    const { items, pageInfo, status } = useSelector((state) => state.vault);
 
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 6; 
+    // Initial load
+    useEffect(() => {
+        dispatch(fetchPasswords({ page: 0, size: 6 }));
+    }, [dispatch]);
 
-  const pageCount = Math.ceil((items?.length || 0) / itemsPerPage);
+    const handleChangePage = (event, value) => {
+        // value is 1-based from MUI, Spring is 0-based
+        dispatch(fetchPasswords({ page: value - 1, size: 6 }));
+    };
 
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = items ? items.slice(startIndex, endIndex) : [];
+    return (
+        <Box>
+            <Grid container spacing={3}>
+                {items.map((item) => (
+                    <Grid key={item.id} item xs={12} sm={6} md={4}>
+                        <VaultItem item={item} onEdit={onEditItem} />
+                    </Grid>
+                ))}
+            </Grid>
 
-  const handleChangePage = (event, value) => {
-    setPage(value);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const hasItems = items && items.length > 0;
-
-  return (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        marginTop: 3,
-        paddingX: 3,
-        paddingBottom: 5, 
-      }}
-    >
-      <Box sx={{ width: "100%", maxWidth: "1400px" }}>
-        {/* Display message if there are no items */}
-        {!hasItems && (
-          <Typography variant="h6" color="text.secondary" align="center" sx={{ mt: 4 }}>
-            Your vault is empty. Add a new item to get started.
-          </Typography>
-        )}
-
-        <Grid container spacing={3}>
-          {hasItems &&
-            currentItems.map((item) => (
-              <Grid
-                key={item.id}
-                item 
-                xs={12}
-                sm={6}
-                md={4}
-                sx={{ display: "flex" }}
-              >
-                <VaultItem item={item} onEdit={onEditItem} />
-              </Grid>
-            ))}
-        </Grid>
-
-        {hasItems && pageCount > 1 && (
-          <Stack spacing={2} alignItems="center" sx={{ marginTop: 4 }}>
-            <Pagination
-              count={pageCount}
-              page={page}
-              onChange={handleChangePage}
-              color="primary"
-              showFirstButton
-              showLastButton
-            />
-          </Stack>
-        )}
-      </Box>
-    </Box>
-  );
+            {/* PAGINATION CONTROLS */}
+            {pageInfo.totalPages > 1 && (
+                <Stack alignItems="center" sx={{ mt: 4 }}>
+                    <Pagination
+                        count={pageInfo.totalPages}
+                        page={pageInfo.currentPage + 1} // Sync back to 1-based for UI
+                        onChange={handleChangePage}
+                        color="primary"
+                    />
+                </Stack>
+            )}
+        </Box>
+    );
 }
