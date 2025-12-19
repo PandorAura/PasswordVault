@@ -17,11 +17,11 @@ export default function VaultList({ onEditItem }) {
   const itemsPerPage = 6;
 
   useEffect(() => {
-    dispatch(fetchPasswords({ page: 0, size: 6 }));
+    dispatch(fetchPasswords({ page: 0, size: itemsPerPage }));
   }, [dispatch]);
 
   const handleChangePage = (event, value) => {
-    dispatch(fetchPasswords({ page: value - 1, size: 6 }));
+    dispatch(fetchPasswords({ page: value - 1, size: itemsPerPage }));
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

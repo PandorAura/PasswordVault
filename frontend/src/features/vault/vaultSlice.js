@@ -85,7 +85,7 @@ const vaultSlice = createSlice({
     pageInfo: {
       totalElements: 0,
       totalPages: 0,
-      page: 0,
+      currentPage: 0,
       size: 10,
     },
   },
@@ -98,7 +98,7 @@ const vaultSlice = createSlice({
         totalElements: 0,
         totalPages: 0,
         page: 0,
-        size: 10,
+        size: 6,
       };
     },
   },
@@ -123,6 +123,11 @@ const vaultSlice = createSlice({
       /* ===== ADD ===== */
       .addCase(addPassword.fulfilled, (state, action) => {
         state.items.unshift(action.payload);
+
+        // If the list is now longer than the page size (6), remove the last one
+        if (state.items.length > state.pageInfo.size) {
+          state.items.pop();
+        }
       })
 
       /* ===== UPDATE ===== */
