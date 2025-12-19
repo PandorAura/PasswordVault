@@ -11,7 +11,9 @@ public class PasswordMapper {
                 .title(password.getTitle())
                 .usernameOrEmail(password.getUsernameOrEmail())
                 .websiteUrl(password.getWebsiteUrl())
-                .password(password.getPassword())
+                .encryptedPassword(password.getEncryptedPassword())
+                .encryptionIv(password.getEncryptionIv())
+                .notes(password.getNotes())
                 .category(String.valueOf(password.getCategory()))
                 .strength(String.valueOf(password.getStrength()))
                 .build();

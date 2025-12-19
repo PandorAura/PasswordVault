@@ -25,6 +25,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useDispatch } from "react-redux";
 import { deletePassword } from "../vaultSlice";
 import { sha256 } from "hash-wasm";
+import { decryptPassword, getStoredKey } from "../../../utils/cryptoUtils";
 
 export default function VaultItem({ item, onEdit }) {
   const dispatch = useDispatch();
@@ -32,10 +33,17 @@ export default function VaultItem({ item, onEdit }) {
   const [showPassword, setShowPassword] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [decryptedPassword, setDecryptedPassword] = useState("");
 
   const [masterPassword, setMasterPassword] = useState("");
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [error, setError] = useState(null);
+
+  React.useEffect(() => {
+    setDecryptedPassword(""); // Clear the old password from memory
+    setShowPassword(false); // Hide the dots again
+  }, [item.encryptedPassword]);
 
   const strengthStyles = {
     "very weak": { bg: "#FECACA", color: "#B91C1C" },
@@ -44,32 +52,81 @@ export default function VaultItem({ item, onEdit }) {
     strong: { bg: "#DBEAFE", color: "#1D4ED8" },
     "very strong": { bg: "#DCFCE7", color: "#15803D" },
   };
+  // --- Handle Decryption for Display ---
+  const handleTogglePassword = async () => {
+    if (showPassword) {
+      setShowPassword(false);
+      return;
+    }
 
-    const handleDelete = async () => {
-        if (!masterPassword) {
-            setError("Master password is required");
-            return;
-        }
+    // If we already decrypted it once, just show it
+    if (decryptedPassword) {
+      setShowPassword(true);
+      return;
+    }
 
-        try {
-            setDeleting(true);
-            const masterPasswordHash = await sha256(masterPassword);
+    // Otherwise, decrypt it now
+    setIsDecrypting(true);
+    const ek = getStoredKey();
+    if (!ek) {
+      alert("Vault is locked. Please refresh and unlock.");
+      setIsDecrypting(false);
+      return;
+    }
 
-            // Call the Redux Thunk
-            await dispatch(deletePassword({
-                id: item.id,
-                masterPasswordHash
-            })).unwrap();
+    const result = await decryptPassword(
+      item.encryptedPassword,
+      item.encryptionIv,
+      ek
+    );
+    setDecryptedPassword(result);
+    setShowPassword(true);
+    setIsDecrypting(false);
+  };
+  const handleDelete = async () => {
+    if (!masterPassword) {
+      setError("Master password is required");
+      return;
+    }
 
-            setConfirmOpen(false);
-            setMasterPassword("");
-        } catch (err) {
-            setError(err.message || "Invalid master password or delete failed");
-        } finally {
-            setDeleting(false);
-        }
-    };
+    try {
+      setDeleting(true);
+      const masterPasswordHash = await sha256(masterPassword);
 
+      // Call the Redux Thunk
+      await dispatch(
+        deletePassword({
+          id: item.id,
+          masterPasswordHash,
+        })
+      ).unwrap();
+
+      setConfirmOpen(false);
+      setMasterPassword("");
+    } catch (err) {
+      setError(err.message || "Invalid master password or delete failed");
+    } finally {
+      setDeleting(false);
+    }
+  };
+  const handleCopy = () => {
+    // If visible, copy decrypted. If hidden but we have it, copy decrypted.
+    // If hidden and we don't have it, we must decrypt first (optional UX)
+    if (decryptedPassword) {
+      navigator.clipboard.writeText(decryptedPassword);
+    } else {
+      // Auto-decrypt and copy
+      const ek = getStoredKey();
+      if (ek) {
+        decryptPassword(item.encryptedPassword, item.encryptionIv, ek).then(
+          (res) => {
+            setDecryptedPassword(res);
+            navigator.clipboard.writeText(res);
+          }
+        );
+      }
+    }
+  };
   return (
     <>
       <Paper
@@ -101,8 +158,7 @@ export default function VaultItem({ item, onEdit }) {
                   sx={{
                     backgroundColor:
                       strengthStyles[item.strength.toLowerCase()]?.bg,
-                    color:
-                      strengthStyles[item.strength.toLowerCase()]?.color,
+                    color: strengthStyles[item.strength.toLowerCase()]?.color,
                     textTransform: "capitalize",
                   }}
                 />
@@ -127,22 +183,33 @@ export default function VaultItem({ item, onEdit }) {
         <Divider sx={{ my: 2 }} />
 
         {/* BODY */}
-        <Row label="Username:" value={item.username} copyValue={item.username} />
+        <Row
+          label="Username:"
+          value={item.username}
+          copyValue={item.username}
+        />
 
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Typography sx={{ width: 110, color: "text.secondary" }}>
             Password:
           </Typography>
           <Typography>
-            {showPassword ? item.password : "•".repeat(12)}
+            {showPassword ? decryptedPassword : "•".repeat(12)}
           </Typography>
-          <IconButton size="small" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-          </IconButton>
           <IconButton
             size="small"
-            onClick={() => navigator.clipboard.writeText(item.password)}
+            onClick={handleTogglePassword}
+            disabled={isDecrypting}
           >
+            {isDecrypting ? (
+              <CircularProgress size={16} />
+            ) : showPassword ? (
+              <VisibilityOffIcon />
+            ) : (
+              <VisibilityIcon />
+            )}{" "}
+          </IconButton>
+          <IconButton size="small" onClick={handleCopy}>
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Box>
@@ -182,12 +249,14 @@ export default function VaultItem({ item, onEdit }) {
       </Paper>
 
       {/* CONFIRM DELETE */}
-      <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)}>
+      <Dialog
+        open={confirmOpen}
+        onClose={() => !deleting && setConfirmOpen(false)}
+      >
         <DialogTitle>Confirm deletion</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
-            Enter your <b>master password</b> to delete{" "}
-            <b>{item.title}</b>.
+            Enter your <b>master password</b> to delete <b>{item.title}</b>.
           </Typography>
 
           <TextField
@@ -203,9 +272,7 @@ export default function VaultItem({ item, onEdit }) {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() =>
-                      setShowMasterPassword(!showMasterPassword)
-                    }
+                    onClick={() => setShowMasterPassword(!showMasterPassword)}
                   >
                     {showMasterPassword ? (
                       <VisibilityOffIcon />

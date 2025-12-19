@@ -18,6 +18,7 @@ import {
 import { useDispatch } from "react-redux";
 import { updatePassword } from "../vaultSlice";
 import { calculatePasswordStrength } from "../../../utils/passwordStregthCalculator";
+import { getStoredKey, decryptPassword } from "../../../utils/cryptoUtils";
 
 export default function EditPasswordModal({ open, onClose, item }) {
   const dispatch = useDispatch();
@@ -36,10 +37,36 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const [form, setForm] = useState(item || emptyForm);
 
   useEffect(() => {
-    if (item) {
-      setForm(item);
+    if (item && open) {
+      // 1. Set basic fields
+      const initialForm = {
+        id: item.id,
+        title: item.title,
+        username: item.username,
+        url: item.url || "",
+        category: item.category || "General",
+        notes: item.notes || "",
+        password: "", // Temporary empty
+        encryptionIv: item.encryptionIv, // Keep this ref if needed, though update generates new IV
+      };
+
+      // 2. Decrypt the password
+      const ek = getStoredKey();
+      if (ek && item.encryptedPassword) {
+        decryptPassword(item.encryptedPassword, item.encryptionIv, ek)
+          .then((decrypted) => {
+            setForm({ ...initialForm, password: decrypted });
+          })
+          .catch((err) => {
+            console.error("Failed to decrypt for edit:", err);
+            setForm({ ...initialForm, password: "" }); // or show error
+          });
+      } else {
+        // Fallback if no encryption (legacy) or locked
+        setForm(initialForm);
+      }
     }
-  }, [item]);
+  }, [item, open]); // Run when item changes or modal opens
 
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
@@ -54,7 +81,6 @@ export default function EditPasswordModal({ open, onClose, item }) {
 
   const [loading, setLoading] = useState(false); // Add this state to your component
   const [error, setError] = useState(null);
-
 
   const generatePassword = () => {
     let chars = "";
@@ -104,11 +130,11 @@ export default function EditPasswordModal({ open, onClose, item }) {
       // 1. MUST use the thunk name: updatePassword
       // 2. MUST wrap it in dispatch()
       const resultAction = await dispatch(
-          updatePassword({
-            ...form,
-            strength,
-            updatedAt: new Date().toLocaleDateString(),
-          })
+        updatePassword({
+          ...form,
+          strength,
+          updatedAt: new Date().toLocaleDateString(),
+        })
       );
 
       // This helps debug if the dispatch actually fired
@@ -165,13 +191,13 @@ export default function EditPasswordModal({ open, onClose, item }) {
       <DialogContent sx={{ pt: 2 }}>
         {/* GLOBAL ERROR ALERT */}
         {error && (
-            <Alert
-                severity="error"
-                sx={{ mb: 2, borderRadius: 2 }}
-                onClose={() => setError(null)} // Allows user to dismiss the error
-            >
-              {error}
-            </Alert>
+          <Alert
+            severity="error"
+            sx={{ mb: 2, borderRadius: 2 }}
+            onClose={() => setError(null)} // Allows user to dismiss the error
+          >
+            {error}
+          </Alert>
         )}
 
         {activeTab === 0 && (
@@ -290,10 +316,12 @@ export default function EditPasswordModal({ open, onClose, item }) {
           Cancel
         </Button>
         <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading}
+          startIcon={
+            loading ? <CircularProgress size={20} color="inherit" /> : null
+          }
         >
           {loading ? "Saving..." : "Save Changes"}
         </Button>

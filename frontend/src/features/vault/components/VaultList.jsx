@@ -10,11 +10,25 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { fetchPasswords } from "../vaultSlice"; // Ensure this is imported
 import VaultItem from "./VaultItem";
+import { useNavigate } from "react-router-dom";
+import { getStoredKey } from "../../../utils/cryptoUtils";
 
 export default function VaultList({ onEditItem }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const { items, pageInfo, status } = useSelector((state) => state.vault);
   const itemsPerPage = 6;
+
+  useEffect(() => {
+    // Check if key exists in RAM
+    const key = getStoredKey();
+    if (!key) {
+      // If no key, force user to Unlock page immediately
+      // (Don't force Logout, just Unlock)
+      navigate("/check-master");
+    }
+  }, [navigate]);
 
   useEffect(() => {
     dispatch(fetchPasswords({ page: 0, size: itemsPerPage }));

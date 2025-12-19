@@ -33,8 +33,11 @@ public class Password {
     @Column(name = "username_email", nullable = false)
     private String usernameOrEmail;
 
-    @Column(nullable = false)
-    private String password;
+    @Column(name = "encrypted_password", nullable = false, columnDefinition = "TEXT")
+    private String encryptedPassword;
+
+    @Column(name = "encryption_iv", nullable = false)
+    private String encryptionIv;
 
     @Column(name = "website_url")
     private String websiteUrl;
