@@ -54,6 +54,29 @@ public class PasswordService {
                 .findByIdAndUser(passwordId, user)
                 .orElseThrow(() -> new RuntimeException("Password entry not found"));
 
+        passwordRepository.delete(password);
+    }
+
+    /**
+     * Update an existing password entry for the authenticated user
+     */
+    public Password updatePassword(UUID passwordId, PasswordRequest request, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        Password existingPassword = passwordRepository
+                .findByIdAndUser(passwordId, user)
+                .orElseThrow(() -> new RuntimeException("Password entry not found or access denied"));
+
+        existingPassword.setTitle(request.getTitle());
+        existingPassword.setUsernameOrEmail(request.getUsername());
+        existingPassword.setPassword(request.getPassword());
+        existingPassword.setWebsiteUrl(request.getUrl());
+        existingPassword.setNotes(request.getNotes());
+
+        existingPassword.setCategory(resolveCategory(request.getCategory()));
+
+        return passwordRepository.save(existingPassword);
     }
 
     /**
