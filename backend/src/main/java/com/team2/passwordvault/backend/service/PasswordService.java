@@ -31,7 +31,8 @@ public class PasswordService {
         Password newEntry = new Password();
         newEntry.setTitle(request.getTitle());
         newEntry.setUsernameOrEmail(request.getUsername());
-        newEntry.setPassword(request.getPassword()); // encryption comes later
+        newEntry.setEncryptedPassword(request.getEncryptedPassword());
+        newEntry.setEncryptionIv(request.getEncryptionIv());
         newEntry.setWebsiteUrl(request.getUrl());
         newEntry.setNotes(request.getNotes());
         newEntry.setUser(user);
@@ -70,7 +71,8 @@ public class PasswordService {
 
         existingPassword.setTitle(request.getTitle());
         existingPassword.setUsernameOrEmail(request.getUsername());
-        existingPassword.setPassword(request.getPassword());
+        existingPassword.setEncryptedPassword(request.getEncryptedPassword());
+        existingPassword.setEncryptionIv(request.getEncryptionIv());
         existingPassword.setWebsiteUrl(request.getUrl());
         existingPassword.setNotes(request.getNotes());
 

@@ -18,8 +18,11 @@ public class PasswordRequest {
     @NotBlank(message = "Username is required")
     String username;
 
-    @NotBlank(message = "Password is required")
-    String password;
+    @NotBlank(message = "Encrypted Password is required")
+    String encryptedPassword;
+
+    @NotBlank(message = "Encryption IV is required")
+    String encryptionIv;
 
     String url;
 

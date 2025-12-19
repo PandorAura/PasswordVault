@@ -59,6 +59,9 @@ export const clearKey = () => {
 
 // --- Helper: Convert Hex String to Uint8Array ---
 function hexToBytes(hex) {
+    if (!hex) {
+        throw new Error("Vault is locked! Please refresh and unlock the vault to continue.");
+    }
     return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 }
 
