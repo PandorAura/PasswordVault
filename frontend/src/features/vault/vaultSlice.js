@@ -8,10 +8,29 @@ const getAuthHeader = () => ({
 });
 
 // THUNKS
-export const fetchPasswords = createAsyncThunk("vault/fetch", async () => {
-  const response = await axios.get(API_BASE, getAuthHeader());
-  return response.data;
-});
+export const fetchPasswords = createAsyncThunk(
+  "vault/fetch",
+  async ({ page = 0, size = 10 }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(API_BASE, {
+        ...getAuthHeader(),
+        params: { page, size },
+      });
+
+      return {
+        items: response.data.content,
+        pageInfo: {
+          totalElements: response.data.totalElements,
+          totalPages: response.data.totalPages,
+          page: response.data.number,
+          size: response.data.size,
+        },
+      };
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
 
 export const addPassword = createAsyncThunk("vault/add", async (passwordData) => {
     const response = await axios.post(API_BASE, passwordData, getAuthHeader());
@@ -58,26 +77,73 @@ export const deletePassword = createAsyncThunk("vault/delete", async ({ id, mast
 
 const vaultSlice = createSlice({
   name: "vault",
-  initialState: { items: [], status: "idle", error: null },
-  reducers: {},
+  initialState: {
+    items: [],
+    status: "idle",
+    error: null,
+    pageInfo: {
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+    },
+  },
+  reducers: {
+    clearVault(state) {
+      state.items = [];
+      state.status = "idle";
+      state.error = null;
+      state.pageInfo = {
+        totalElements: 0,
+        totalPages: 0,
+        page: 0,
+        size: 10,
+      };
+    },
+  },
   extraReducers: (builder) => {
     builder
-        .addCase(addPassword.fulfilled, (state, action) => {
-          state.items.push(action.payload);
-        })
-        .addCase(updatePassword.fulfilled, (state, action) => {
-          const index = state.items.findIndex((i) => i.id === action.payload.id);
-          if (index !== -1) state.items[index] = action.payload;
-        })
-        .addCase(deletePassword.fulfilled, (state, action) => {
-          state.items = state.items.filter((item) => item.id !== action.payload);
-        });
+
+      /* ===== FETCH ===== */
+      .addCase(fetchPasswords.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPasswords.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = action.payload.items;
+        state.pageInfo = action.payload.pageInfo;
+      })
+      .addCase(fetchPasswords.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+
+      /* ===== ADD ===== */
+      .addCase(addPassword.fulfilled, (state, action) => {
+        state.items.unshift(action.payload);
+      })
+
+      /* ===== UPDATE ===== */
+      .addCase(updatePassword.fulfilled, (state, action) => {
+        const index = state.items.findIndex(
+          (item) => item.id === action.payload.id
+        );
+        if (index !== -1) {
+          state.items[index] = {
+            ...state.items[index],
+            ...action.payload,
+          };
+        }
+      })
+
+      /* ===== DELETE ===== */
+      .addCase(deletePassword.fulfilled, (state, action) => {
+        state.items = state.items.filter(
+          (item) => item.id !== action.payload
+        );
+      });
   },
 });
 
+export const { clearVault } = vaultSlice.actions;
 export default vaultSlice.reducer;
-
-// add to the extraReducers builder:
-//.addCase(fetchPasswords.fulfilled, (state, action) => {
-//    state.items = action.payload;
-//})
