@@ -17,8 +17,7 @@ import {
   Alert,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { addItem } from "../vaultSlice";
-import { calculatePasswordStrength } from "../../../utils/passwordStregthCalculator";
+import { addPassword } from "../vaultSlice";
 
 export default function AddPasswordModal({ open, onClose }) {
   const dispatch = useDispatch();
@@ -63,7 +62,7 @@ export default function AddPasswordModal({ open, onClose }) {
     setForm({ ...form, password: pwd });
   };
 
-  // ---------------- SUBMIT ----------------
+  // Inside handleSubmit
   const handleSubmit = async () => {
     if (!form.title || !form.password) {
       setError("Title and Password are required.");
@@ -71,66 +70,14 @@ export default function AddPasswordModal({ open, onClose }) {
     }
 
     setLoading(true);
-    setError(null);
-
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("You are not logged in.");
-      }
-
-      const response = await fetch("http://localhost:8080/api/passwords", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: form.title,
-          username: form.username,
-          password: form.password,
-          url: form.url,
-          category: form.category,
-          notes: form.notes,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save password");
-      }
-
-      const savedData = await response.json();
-
-      const strength = calculatePasswordStrength(form.password);
-
-      // ✅ SINGLE, CORRECT DISPATCH
-      dispatch(
-        addItem({
-          id: savedData.id,                     // UUID from backend
-          title: savedData.title,
-          username: savedData.usernameOrEmail,
-          password: form.password,              // frontend-only
-          url: savedData.websiteUrl,
-          category: form.category,
-          notes: form.notes,
-          strength,
-          updatedAt: new Date().toLocaleDateString(),
-        })
-      );
+      // Dispatch the thunk and unwrap to catch errors locally if needed
+      await dispatch(addPassword(form)).unwrap();
 
       onClose();
-      setForm({
-        title: "",
-        username: "",
-        password: "",
-        url: "",
-        category: "GENERAL",
-        notes: "",
-      });
-
+      setForm({ title: "", username: "", password: "", url: "", category: "GENERAL", notes: "" });
     } catch (err) {
-      console.error(err);
-      setError(err.message || "Something went wrong");
+      setError(err.message || "Failed to save password");
     } finally {
       setLoading(false);
     }

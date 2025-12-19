@@ -4,6 +4,8 @@ public enum PasswordCategory {
     GENERAL,
     WORK,
     BANKING,
-    PERSONAL,
+    SOCIAL,
+    EMAIL,
+    ENTERTAINMENT,
     OTHER
 }

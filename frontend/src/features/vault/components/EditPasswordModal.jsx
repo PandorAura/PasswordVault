@@ -6,6 +6,7 @@ import {
   DialogActions,
   TextField,
   Button,
+  CircularProgress,
   Tabs,
   Tab,
   Box,
@@ -15,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { editItem } from "../vaultSlice";
+import { updatePassword } from "../vaultSlice";
 import { calculatePasswordStrength } from "../../../utils/passwordStregthCalculator";
 
 export default function EditPasswordModal({ open, onClose, item }) {
@@ -51,6 +52,10 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const [includeSymbols, setIncludeSymbols] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
+  const [loading, setLoading] = useState(false); // Add this state to your component
+  const [error, setError] = useState(null);
+
+
   const generatePassword = () => {
     let chars = "";
     if (includeUpper) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -68,9 +73,10 @@ export default function EditPasswordModal({ open, onClose, item }) {
     setForm({ ...form, password: pwd });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errors = {};
 
+    // 1. Validation Logic
     if (!form.title.trim()) errors.title = "Title is required";
     if (!form.username.trim()) errors.username = "Username is required";
     if (!form.password.trim()) errors.password = "Password cannot be empty";
@@ -85,17 +91,39 @@ export default function EditPasswordModal({ open, onClose, item }) {
       return;
     }
 
+    // 2. Prepare for API Call
+
+    setError(null);
     const strength = calculatePasswordStrength(form.password);
 
-    dispatch(
-      editItem({
-        ...form,
-        strength,
-        updatedAt: new Date().toLocaleDateString(),
-      })
-    );
+    console.log("Attempting to send update for ID:", form.id); // Check if ID exists!
 
-    onClose();
+    try {
+      setLoading(true);
+
+      // 1. MUST use the thunk name: updatePassword
+      // 2. MUST wrap it in dispatch()
+      const resultAction = await dispatch(
+          updatePassword({
+            ...form,
+            strength,
+            updatedAt: new Date().toLocaleDateString(),
+          })
+      );
+
+      // This helps debug if the dispatch actually fired
+      if (updatePassword.fulfilled.match(resultAction)) {
+        console.log("Update successful!");
+        onClose();
+      } else {
+        console.error("Update failed:", resultAction.payload);
+        setError(resultAction.payload || "Server error");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -135,6 +163,17 @@ export default function EditPasswordModal({ open, onClose, item }) {
       </Tabs>
 
       <DialogContent sx={{ pt: 2 }}>
+        {/* GLOBAL ERROR ALERT */}
+        {error && (
+            <Alert
+                severity="error"
+                sx={{ mb: 2, borderRadius: 2 }}
+                onClose={() => setError(null)} // Allows user to dismiss the error
+            >
+              {error}
+            </Alert>
+        )}
+
         {activeTab === 0 && (
           <Stack spacing={2}>
             <TextField
@@ -178,13 +217,13 @@ export default function EditPasswordModal({ open, onClose, item }) {
               value={form.category}
               onChange={handleChange("category")}
             >
-              <option>General</option>
-              <option>Social Media</option>
-              <option>Email</option>
-              <option>Banking</option>
-              <option>Work</option>
-              <option>Entertainment</option>
-              <option>Other</option>
+              <option value="GENERAL">General</option>
+              <option value="SOCIAL">Social</option>
+              <option value="EMAIL">Email</option>
+              <option value="BANKING">Banking</option>
+              <option value="WORK">Work</option>
+              <option value="ENTERTAINMENT">Entertainment</option>
+              <option value="OTHER">Other</option>
             </TextField>
             <TextField
               label="Notes"
@@ -250,8 +289,13 @@ export default function EditPasswordModal({ open, onClose, item }) {
         <Button onClick={onClose} variant="outlined">
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSubmit}>
-          Save Changes
+        <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+        >
+          {loading ? "Saving..." : "Save Changes"}
         </Button>
       </DialogActions>
     </Dialog>
