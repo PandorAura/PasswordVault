@@ -1,23 +1,29 @@
-import React, { useState } from "react";
-import { Box, Grid, Typography, Pagination, Stack } from "@mui/material";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import {
+  Box,
+  Grid,
+  Typography,
+  Pagination,
+  Stack,
+  CircularProgress,
+} from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchPasswords } from "../vaultSlice"; // Ensure this is imported
 import VaultItem from "./VaultItem";
 
 export default function VaultList({ onEditItem }) {
-  const items = useSelector((state) => state.vault.items);
+  const dispatch = useDispatch();
+  const { items, pageInfo, status } = useSelector((state) => state.vault);
+  const itemsPerPage = 6;
 
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 6; 
-
-  const pageCount = Math.ceil((items?.length || 0) / itemsPerPage);
-
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = items ? items.slice(startIndex, endIndex) : [];
+  useEffect(() => {
+    dispatch(fetchPasswords({ page: 0, size: itemsPerPage }));
+  }, [dispatch]);
 
   const handleChangePage = (event, value) => {
-    setPage(value);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    dispatch(fetchPasswords({ page: value - 1, size: itemsPerPage }));
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const hasItems = items && items.length > 0;
@@ -32,38 +38,45 @@ export default function VaultList({ onEditItem }) {
         justifyContent: "center",
         marginTop: 3,
         paddingX: 3,
-        paddingBottom: 5, 
+        paddingBottom: 5,
       }}
     >
+      {/* 2. INNER CONTAINER: */}
       <Box sx={{ width: "100%", maxWidth: "1400px" }}>
-        {/* Display message if there are no items */}
-        {!hasItems && (
-          <Typography variant="h6" color="text.secondary" align="center" sx={{ mt: 4 }}>
+        {/* 3. EMPTY STATE: */}
+        {!hasItems && status === "succeeded" && (
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            align="center"
+            sx={{ mt: 4 }}
+          >
             Your vault is empty. Add a new item to get started.
           </Typography>
         )}
 
         <Grid container spacing={3}>
-          {hasItems &&
-            currentItems.map((item) => (
-              <Grid
-                key={item.id}
-                item 
-                xs={12}
-                sm={6}
-                md={4}
-                sx={{ display: "flex" }}
-              >
-                <VaultItem item={item} onEdit={onEditItem} />
-              </Grid>
-            ))}
+          {items.map((item) => (
+            <Grid
+              key={item.id}
+              item
+              xs={12}
+              sm={6}
+              md={4}
+              // Added display: flex to ensure cards are equal height
+              sx={{ display: "flex" }}
+            >
+              <VaultItem item={item} onEdit={onEditItem} />
+            </Grid>
+          ))}
         </Grid>
 
-        {hasItems && pageCount > 1 && (
+        {/* 4. PAGINATION: */}
+        {pageInfo?.totalPages > 1 && (
           <Stack spacing={2} alignItems="center" sx={{ marginTop: 4 }}>
             <Pagination
-              count={pageCount}
-              page={page}
+              count={pageInfo.totalPages}
+              page={pageInfo.currentPage + 1} // Sync back to 1-based for UI
               onChange={handleChangePage}
               color="primary"
               showFirstButton
