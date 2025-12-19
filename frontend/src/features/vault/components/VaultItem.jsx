@@ -40,6 +40,11 @@ export default function VaultItem({ item, onEdit }) {
   const [showMasterPassword, setShowMasterPassword] = useState(false);
   const [error, setError] = useState(null);
 
+  React.useEffect(() => {
+    setDecryptedPassword(""); // Clear the old password from memory
+    setShowPassword(false); // Hide the dots again
+  }, [item.encryptedPassword]);
+
   const strengthStyles = {
     "very weak": { bg: "#FECACA", color: "#B91C1C" },
     weak: { bg: "#FFEDD5", color: "#C2410C" },

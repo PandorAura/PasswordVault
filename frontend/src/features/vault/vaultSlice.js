@@ -80,12 +80,19 @@ export const updatePassword = createAsyncThunk(
                 encryptedPassword: ciphertext,
                 encryptionIv: iv
             };
-            await axios.put(
+            const response = await axios.put(
                 `${API_BASE}/${item.id}`,
                 payload,
                 getAuthHeader()
             );
-            return item;
+            return {
+          ...response.data, // Server response
+          username: item.username,
+          url: item.url,
+          password: item.password,
+          encryptedPassword: ciphertext,
+          encryptionIv: iv              
+      };
         } catch (err) {
             console.error("Request failed inside thunk:", err);
             return rejectWithValue(err.response?.data || err.message);

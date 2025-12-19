@@ -13,7 +13,9 @@ public class PasswordResponse {
     private String title;
     private String usernameOrEmail;
     private String websiteUrl;
-    private String password;
+    private String encryptedPassword;
+    private String encryptionIv;
+    private String notes;
     private String category;
     private String strength;
 }
