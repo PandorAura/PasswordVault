@@ -39,7 +39,7 @@ export default function VaultPage() {
         category={category}
         setCategory={setCategory}
         onOpenModal={() => setIsModalOpen(true)}
-        onCheckBreaches={() => console.log("Check breaches clicked")}
+        onCheckBreaches={() => navigate("/breaches")}
       />
 
       <VaultList onEditItem={handleEditItem} />
