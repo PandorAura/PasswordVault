@@ -11,15 +11,25 @@ apiClient.interceptors.request.use(
     const url = config.url || "";
 
     const isAuthRequest =
-      url.includes("/api/auth/login") || url.includes("/api/auth/register");
+      url.includes("/api/auth/login") ||
+      url.includes("/api/auth/register") ||
+      url.includes("/api/vault/salt");
 
     if (token && !isAuthRequest) {
+      config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 export default apiClient;

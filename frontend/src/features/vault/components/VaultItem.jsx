@@ -39,8 +39,8 @@ export default function VaultItem({ item, onEdit }) {
   const [decryptedPassword, setDecryptedPassword] = useState("");
 
   React.useEffect(() => {
-    setDecryptedPassword(""); 
-    setShowPassword(false); 
+    setDecryptedPassword("");
+    setShowPassword(false);
   }, [item.encryptedPassword]);
 
   const strengthStyles = {
@@ -50,7 +50,6 @@ export default function VaultItem({ item, onEdit }) {
     strong: { bg: "#DBEAFE", color: "#1D4ED8" },
     "very strong": { bg: "#DCFCE7", color: "#15803D" },
   };
-
   const handleTogglePassword = async () => {
     if (showPassword) {
       setShowPassword(false);
@@ -83,7 +82,6 @@ export default function VaultItem({ item, onEdit }) {
   const handleDelete = async () => {
     try {
       setDeleting(true);
-      // Logic simplified: we no longer pass the masterPasswordHash
       await dispatch(deletePassword({ id: item.id })).unwrap();
       const pageToFetch = (items.length === 1 && currentPage > 0) 
       ? currentPage - 1 
@@ -128,7 +126,6 @@ export default function VaultItem({ item, onEdit }) {
           flexDirection: "column",
         }}
       >
-        {/* HEADER */}
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -168,7 +165,6 @@ export default function VaultItem({ item, onEdit }) {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* BODY */}
         <Row
           label="Username:"
           value={item.username}
@@ -252,7 +248,6 @@ export default function VaultItem({ item, onEdit }) {
         </Typography>
       </Paper>
 
-      {/* SIMPLIFIED CONFIRM DELETE */}
       <Dialog
         open={confirmOpen}
         onClose={() => !deleting && setConfirmOpen(false)}
@@ -288,7 +283,9 @@ function Row({ label, value, copyValue }) {
       <Typography sx={{ width: 110, color: "text.secondary" }}>
         {label}
       </Typography>
-      <Typography sx={{ flexGrow: 1 }}>{value}</Typography>
+      <Typography component="div" sx={{ flexGrow: 1 }}>
+        {value}
+      </Typography>
       {copyValue && (
         <IconButton
           size="small"

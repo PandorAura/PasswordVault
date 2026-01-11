@@ -6,13 +6,20 @@ import VaultToolbar from "../features/vault/components/VaultToolbar";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../features/auth/authSlice";
 import { Box } from "@mui/material";
+
+import { logout } from "../features/auth/authSlice";
+import { clearVault } from "../features/vault/vaultSlice";
+import DeleteAccountDialog from "../features/auth/DeleteAccountDialog";
+import { deleteAccountWithMasterRequest } from "../features/auth/authApi";
+import apiClient from "../utils/apiClient";
+import { deriveSecrets } from "../utils/cryptoUtils";
 
 export default function VaultPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
@@ -26,6 +33,38 @@ export default function VaultPage() {
   };
 
   const handleLogout = () => {
+    dispatch(clearVault());
+    dispatch(logout());
+    navigate("/login", { replace: true });
+  };
+
+  const getEmailFromToken = () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return null;
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload).sub;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleDeleteAccount = async ({ masterPassword }) => {
+    const email = getEmailFromToken();
+    if (!email) throw new Error("Missing session.");
+
+    const { data } = await apiClient.get("/api/vault/salt", { params: { email } });
+    const { authHash } = await deriveSecrets(masterPassword, data.salt);
+
+    await deleteAccountWithMasterRequest(email, authHash);
+    dispatch(clearVault());
     dispatch(logout());
     navigate("/login", { replace: true });
   };
@@ -37,7 +76,10 @@ export default function VaultPage() {
         backgroundColor: "background.default",
       }}
     >
-      <VaultHeader onLogout={handleLogout} />
+      <VaultHeader
+        onLogout={handleLogout}
+        onDeleteAccount={() => setIsDeleteAccountOpen(true)}
+      />
 
       <VaultToolbar
         search={search}
@@ -51,16 +93,18 @@ export default function VaultPage() {
       <VaultList onEditItem={handleEditItem} />
 
       {isModalOpen && (
-        <AddPasswordModal
-          open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+        <AddPasswordModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
       )}
 
-      <EditPasswordModal
-        open={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        item={editingItem}
+      <EditPasswordModal open={isEditOpen} onClose={() => setIsEditOpen(false)} item={editingItem} />
+
+      <DeleteAccountDialog
+        open={isDeleteAccountOpen}
+        onClose={() => setIsDeleteAccountOpen(false)}
+        onConfirm={async (payload) => {
+          await handleDeleteAccount(payload);
+          setIsDeleteAccountOpen(false);
+        }}
       />
     </Box>
   );
