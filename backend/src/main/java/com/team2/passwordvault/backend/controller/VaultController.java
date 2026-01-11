@@ -18,7 +18,6 @@ public class VaultController {
     private final UserRepository userRepository;
     private final VaultMetadataRepository vaultMetadataRepository;
 
-    // 1. Setup Vault (Save Salt & Auth Hash)
     @PostMapping("/setup")
     public ResponseEntity<?> setupVault(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -37,7 +36,6 @@ public class VaultController {
         return ResponseEntity.ok().build();
     }
 
-    // 2. Get Salt (Needed for Login/Unlock)
     @GetMapping("/params")
     public ResponseEntity<VaultParamsResponse> getVaultParams(@RequestParam String email) {
         return vaultMetadataRepository.findByUser_Email(email)
@@ -45,7 +43,14 @@ public class VaultController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // DTOs
+    @GetMapping("/salt")
+    public ResponseEntity<VaultSaltResponse> getVaultSalt(@RequestParam String email) {
+        return vaultMetadataRepository.findByUser_Email(email)
+                .map(meta -> ResponseEntity.ok(new VaultSaltResponse(meta.getKdfSalt())))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     public record VaultSetupRequest(String salt, String authHash) {}
     public record VaultParamsResponse(String salt, String authHash) {}
+    public record VaultSaltResponse(String salt) {}
 }

@@ -1,33 +1,22 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import apiClient from "../../utils/apiClient";
 import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
 import { encryptPassword, decryptPassword, getStoredKey } from "../../utils/cryptoUtils";
 
-const API_BASE = "http://localhost:8080/api/passwords";
-
-const getAuthHeader = () => ({
-  headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
-});
-
-// --- THUNKS ---
+const API_BASE = "/api/passwords";
 
 export const fetchPasswords = createAsyncThunk(
   "vault/fetch",
   async ({ page = 0, size = 6 }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(API_BASE, {
-        ...getAuthHeader(),
-        params: { page, size },
-      });
+      const response = await apiClient.get(API_BASE, { params: { page, size } });
 
       const ek = getStoredKey();
       const rawItems = response.data.content.map((item) => ({
         ...item,
         username: item.usernameOrEmail,
         url: item.websiteUrl,
-        updatedAt: item.updatedAt
-          ? new Date(item.updatedAt).toLocaleDateString()
-          : item.updatedAt,
+        updatedAt: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : item.updatedAt,
       }));
 
       const items = ek
@@ -68,13 +57,17 @@ export const fetchPasswords = createAsyncThunk(
 export const addPassword = createAsyncThunk("vault/add", async (passwordData) => {
   let ciphertext = passwordData.encryptedPassword;
   let iv = passwordData.encryptionIv;
-  // Only encrypt if we were passed a raw 'password' field
+
   if (passwordData.password && !ciphertext) {
-      const encrypted = await encryptPassword(passwordData.password);
-      ciphertext = encrypted.ciphertext;
-      iv = encrypted.iv;
+    const encrypted = await encryptPassword(passwordData.password);
+    ciphertext = encrypted.ciphertext;
+    iv = encrypted.iv;
   }
-  const calculatedStrength = calculatePasswordStrength(passwordData.password);
+
+  const calculatedStrength = passwordData.password
+    ? calculatePasswordStrength(passwordData.password)
+    : passwordData.strength;
+
   const payload = {
     title: passwordData.title,
     username: passwordData.username,
@@ -85,18 +78,20 @@ export const addPassword = createAsyncThunk("vault/add", async (passwordData) =>
     encryptionIv: iv,
     strength: calculatedStrength,
   };
-  const currentDate = new Date().toLocaleDateString();
-  const response = await axios.post(API_BASE, payload, getAuthHeader());
+
+  const response = await apiClient.post(API_BASE, payload);
   const savedData = response.data;
+  const currentDate = new Date().toLocaleDateString();
+
   return {
     ...savedData,
     username: savedData.usernameOrEmail,
     url: savedData.websiteUrl,
     password: passwordData.password,
     strength: calculatedStrength,
-    updatedAt: currentDate,
-    encryptionIv: iv,
+    updatedAt: savedData.updatedAt ? new Date(savedData.updatedAt).toLocaleDateString() : currentDate,
     encryptedPassword: ciphertext,
+    encryptionIv: iv,
   };
 });
 
@@ -109,6 +104,7 @@ export const updatePassword = createAsyncThunk(
       const { ciphertext, iv } = await encryptPassword(item.password);
       const strength = calculatePasswordStrength(item.password);
       const updatedAt = new Date().toLocaleDateString();
+
       const payload = {
         title: item.title,
         username: item.username,
@@ -119,14 +115,17 @@ export const updatePassword = createAsyncThunk(
         encryptionIv: iv,
         strength,
       };
-      const response = await axios.put(`${API_BASE}/${item.id}`, payload, getAuthHeader());
+
+      const response = await apiClient.put(`${API_BASE}/${item.id}`, payload);
       return {
         ...response.data,
         username: item.username,
         url: item.url,
         password: item.password,
         strength,
-        updatedAt,
+        updatedAt: response.data.updatedAt
+          ? new Date(response.data.updatedAt).toLocaleDateString()
+          : updatedAt,
         encryptedPassword: ciphertext,
         encryptionIv: iv,
       };
@@ -136,12 +135,11 @@ export const updatePassword = createAsyncThunk(
   }
 );
 
-// MODIFIED: Simplified delete (removed masterPasswordHash)
 export const deletePassword = createAsyncThunk(
   "vault/delete",
   async ({ id }, { rejectWithValue }) => {
     try {
-      await axios.delete(`${API_BASE}/${id}`, getAuthHeader());
+      await apiClient.delete(`${API_BASE}/${id}`);
       return id;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -149,32 +147,19 @@ export const deletePassword = createAsyncThunk(
   }
 );
 
-// --- SLICE ---
-
 export const exportVault = createAsyncThunk(
   "vault/export",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("authToken");
       const ek = getStoredKey();
-
       if (!ek) throw new Error("Vault is locked. Please re-login.");
 
-      // 1. Fetch ALL passwords (size=1000 to bypass pagination)
-      const response = await axios.get(`${API_BASE}?page=0&size=1000`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const response = await apiClient.get(API_BASE, { params: { page: 0, size: 1000 } });
       const encryptedItems = response.data.content;
 
-      // 2. Decrypt locally
-      const decryptedData = await Promise.all(
+      return await Promise.all(
         encryptedItems.map(async (item) => {
-          const decryptedPwd = await decryptPassword(
-            item.encryptedPassword,
-            item.encryptionIv,
-            ek
-          );
+          const decryptedPwd = await decryptPassword(item.encryptedPassword, item.encryptionIv, ek);
           return {
             title: item.title,
             username: item.usernameOrEmail,
@@ -185,14 +170,11 @@ export const exportVault = createAsyncThunk(
           };
         })
       );
-
-      return decryptedData; // This goes to the component
     } catch (err) {
       return rejectWithValue(err.message || "Export failed");
     }
   }
 );
-
 
 export const importVault = createAsyncThunk(
   "vault/import",
@@ -201,8 +183,6 @@ export const importVault = createAsyncThunk(
       const results = [];
       for (const item of items) {
         if (!item.password || !item.title) continue;
-
-        // Just pass the raw item; addPassword will handle encryption
         const result = await dispatch(addPassword(item)).unwrap();
         results.push(result);
       }
@@ -212,7 +192,6 @@ export const importVault = createAsyncThunk(
     }
   }
 );
-
 
 const vaultSlice = createSlice({
   name: "vault",
@@ -242,7 +221,6 @@ const vaultSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      /* ===== FETCH ===== */
       .addCase(fetchPasswords.pending, (state) => {
         state.status = "loading";
       })
@@ -257,17 +235,12 @@ const vaultSlice = createSlice({
         state.status = "failed";
         state.error = action.payload;
       })
-
-      /* ===== ADD ===== */
       .addCase(addPassword.fulfilled, (state, action) => {
         state.items.unshift(action.payload);
-        // Uses state.pageInfo.size (6) to keep grid consistent
         if (state.items.length > state.pageInfo.size) {
           state.items.pop();
         }
       })
-
-      /* ===== UPDATE ===== */
       .addCase(updatePassword.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
         if (index !== -1) {
@@ -277,8 +250,6 @@ const vaultSlice = createSlice({
           };
         }
       })
-
-      /* ===== DELETE ===== */
       .addCase(deletePassword.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
       });
