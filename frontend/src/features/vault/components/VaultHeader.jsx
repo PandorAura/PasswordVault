@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"; // Added useRef here
+import React, { useState, useRef } from "react";
 import { 
   Box, Typography, Button, Paper, Stack, Dialog, DialogTitle, 
   DialogContent, DialogActions, TextField, InputAdornment, 
@@ -13,8 +13,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 import { useSelector, useDispatch } from "react-redux";
-import { exportVault, importVault, fetchPasswords } from "../vaultSlice"; // Added imports
-import { downloadCSV, parseCSV } from "../../../utils/csvUtils"; // Added imports
+import { exportVault, importVault, fetchPasswords } from "../vaultSlice";
+import { downloadCSV, parseCSV } from "../../../utils/csvUtils";
 
 export default function VaultHeader({ onLogout }) {
   const dispatch = useDispatch();
@@ -93,29 +93,46 @@ export default function VaultHeader({ onLogout }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "16px 24px",
+          padding: 2,
+          paddingX: 3,
           borderRadius: 0,
           borderBottom: "1px solid #e5e7eb",
           backgroundColor: "white",
         }}
       >
+        {/* LEFT SIDE */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box sx={{ width: 48, height: 48, backgroundColor: "rgba(99, 102, 241, 0.1)", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <ShieldOutlinedIcon sx={{ color: "#6366f1", fontSize: 28 }} />
+          {/* Icon container */}
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              backgroundColor: "rgba(99, 102, 241, 0.1)",
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ShieldOutlinedIcon sx={{ color: "primary.main", fontSize: 28 }} />
           </Box>
+
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>Password Vault</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Password Vault
+            </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               {totalStored} password{totalStored !== 1 ? "s" : ""} stored
             </Typography>
           </Box>
         </Box>
 
+        {/* RIGHT SIDE BUTTONS */}
         <Stack direction="row" spacing={2}>
           <Button
             variant="outlined"
             startIcon={loading ? <CircularProgress size={16} /> : <FileUploadIcon />}
-            sx={{ borderRadius: "10px", textTransform: "none" }}
+            sx={{ textTransform: "none" }}
             onClick={handleImportClick}
             disabled={loading}
           >
@@ -132,7 +149,7 @@ export default function VaultHeader({ onLogout }) {
           <Button
             variant="outlined"
             startIcon={<FileDownloadIcon />}
-            sx={{ borderRadius: "10px", textTransform: "none" }}
+            sx={{ textTransform: "none" }}
             onClick={() => setOpen(true)}
           >
             Export
@@ -141,7 +158,7 @@ export default function VaultHeader({ onLogout }) {
           <Button
             variant="outlined"
             startIcon={<LogoutIcon />}
-            sx={{ borderRadius: "10px", textTransform: "none" }}
+            sx={{ textTransform: "none" }}
             onClick={onLogout}
           >
             Lock Vault
@@ -150,12 +167,28 @@ export default function VaultHeader({ onLogout }) {
       </Paper>
 
       {/* EXPORT DIALOG */}
-      <Dialog open={open} onClose={() => !loading && setOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>Confirm Export</DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={() => !loading && setOpen(false)} 
+        maxWidth="xs" 
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 3,
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
+          Confirm Export
+        </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="error" sx={{ mb: 2, fontWeight: 500 }}>
-            WARNING: Your passwords will be downloaded in plain text.
-          </Typography>
+          <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              WARNING: Your passwords will be downloaded in plain text.
+            </Typography>
+          </Alert>
           <TextField
             fullWidth
             type={showMasterPassword ? "text" : "password"}
@@ -168,7 +201,10 @@ export default function VaultHeader({ onLogout }) {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowMasterPassword(!showMasterPassword)} edge="end">
+                  <IconButton 
+                    onClick={() => setShowMasterPassword(!showMasterPassword)} 
+                    edge="end"
+                  >
                     {showMasterPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </IconButton>
                 </InputAdornment>
@@ -177,8 +213,15 @@ export default function VaultHeader({ onLogout }) {
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setOpen(false)} disabled={loading}>Cancel</Button>
-          <Button variant="contained" onClick={handleExportClick} disabled={loading}>
+          <Button onClick={() => setOpen(false)} disabled={loading} variant="outlined">
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleExportClick} 
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+          >
             {loading ? "Decrypting..." : "Export CSV"}
           </Button>
         </DialogActions>

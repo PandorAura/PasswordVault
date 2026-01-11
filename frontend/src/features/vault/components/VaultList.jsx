@@ -50,7 +50,6 @@ export default function VaultList({ onEditItem }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 3,
         paddingX: 3,
         paddingBottom: 5,
       }}

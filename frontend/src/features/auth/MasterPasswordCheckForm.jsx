@@ -132,7 +132,11 @@ export function MasterPasswordCheckForm({ onSuccess }) {
         />
 
         {error && (
-          <Alert severity="error" sx={{ borderRadius: 2 }}>
+          <Alert
+            severity="error"
+            sx={{ borderRadius: 2 }}
+            onClose={() => setError(null)}
+          >
             {error}
           </Alert>
         )}
