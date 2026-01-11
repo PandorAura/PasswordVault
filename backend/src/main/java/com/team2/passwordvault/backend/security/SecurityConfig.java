@@ -53,6 +53,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/vault/salt").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/breaches/pwnedpasswords/range/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
