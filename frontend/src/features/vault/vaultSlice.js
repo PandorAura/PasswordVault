@@ -28,6 +28,7 @@ export const fetchPasswords = createAsyncThunk(
         })),
         totalPages: response.data.totalPages,
         currentPage: response.data.number,
+        totalElements: response.data.totalElements,
       };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -215,6 +216,7 @@ const vaultSlice = createSlice({
         state.items = action.payload.items;
         state.pageInfo.totalPages = action.payload.totalPages;
         state.pageInfo.currentPage = action.payload.currentPage;
+        state.pageInfo.totalElements = action.payload.totalElements;
       })
       .addCase(fetchPasswords.rejected, (state, action) => {
         state.status = "failed";
