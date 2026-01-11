@@ -11,7 +11,7 @@ import VaultItem from "./VaultItem";
 import { useNavigate } from "react-router-dom";
 import { getStoredKey } from "../../../utils/cryptoUtils";
 
-export default function VaultList({ onEditItem }) {
+export default function VaultList({ onEditItem, onDeleteSuccess, onDeleteError }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -72,7 +72,13 @@ export default function VaultList({ onEditItem }) {
           }}
         >
           {items.map((item) => (
-            <VaultItem key={item.id} item={item} onEdit={onEditItem} />
+            <VaultItem 
+              key={item.id} 
+              item={item} 
+              onEdit={onEditItem}
+              onDeleteSuccess={onDeleteSuccess}
+              onDeleteError={onDeleteError}
+            />
           ))}
         </Box>
         {/* --- GRID CONTAINER END --- */}

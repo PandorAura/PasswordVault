@@ -30,7 +30,7 @@ import { sha256 } from "hash-wasm";
 import { decryptPassword, getStoredKey } from "../../../utils/cryptoUtils";
 import { normalizeUrl } from "../../../utils/normalizeURL";
 
-export default function VaultItem({ item, onEdit }) {
+export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError }) {
   const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -93,6 +93,7 @@ export default function VaultItem({ item, onEdit }) {
 
     try {
       setDeleting(true);
+      setError(null);
       const masterPasswordHash = await sha256(masterPassword);
 
       await dispatch(
@@ -104,8 +105,15 @@ export default function VaultItem({ item, onEdit }) {
 
       setConfirmOpen(false);
       setMasterPassword("");
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      }
     } catch (err) {
-      setError(err.message || "Invalid master password or delete failed");
+      const errorMsg = err.message || "Invalid master password or delete failed";
+      setError(errorMsg);
+      if (onDeleteError) {
+        onDeleteError(errorMsg);
+      }
     } finally {
       setDeleting(false);
     }

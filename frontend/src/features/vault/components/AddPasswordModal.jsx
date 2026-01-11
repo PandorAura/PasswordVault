@@ -15,6 +15,7 @@ import {
   Typography,
   CircularProgress,
   Alert,
+  Snackbar,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { addPassword } from "../vaultSlice";
@@ -25,6 +26,7 @@ export default function AddPasswordModal({ open, onClose }) {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" });
 
   const [form, setForm] = useState({
     title: "",
@@ -72,16 +74,20 @@ export default function AddPasswordModal({ open, onClose }) {
     try {
       await dispatch(addPassword(form)).unwrap();
 
-      onClose();
+      setSnackbar({ open: true, message: "Password added successfully!", type: "success" });
       setForm({ title: "", username: "", password: "", url: "", category: "GENERAL", notes: "" });
+      
+      onClose();
     } catch (err) {
       setError(err.message || "Failed to save password");
+      setSnackbar({ open: true, message: err.message || "Failed to save password", type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <Dialog
       open={open}
       onClose={loading ? null : onClose}
@@ -207,6 +213,43 @@ export default function AddPasswordModal({ open, onClose }) {
         </DialogActions>
       )}
     </Dialog>
+
+    {/* SNACKBAR NOTIFICATION */}
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={3000}
+      onClose={() => setSnackbar({ ...snackbar, open: false })}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      sx={{
+        top: { xs: "16px", sm: "24px" },
+        zIndex: 9999,
+      }}
+    >
+      <Alert
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        severity={snackbar.type}
+        variant="filled"
+        sx={{
+          width: "100%",
+          borderRadius: 3,
+          fontFamily: "'Inter', sans-serif",
+          fontWeight: 500,
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+          "& .MuiAlert-icon": {
+            fontSize: "1.25rem",
+          },
+          ...(snackbar.type === "success" && {
+            backgroundColor: "#6366F1",
+            "&:hover": {
+              backgroundColor: "#5855eb",
+            },
+          }),
+        }}
+      >
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+    </>
   );
 }
 
