@@ -13,8 +13,6 @@ import {
   DialogActions,
   Button,
   CircularProgress,
-  TextField,
-  InputAdornment,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -22,13 +20,16 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { useDispatch } from "react-redux";
-import { deletePassword } from "../vaultSlice";
-import { sha256 } from "hash-wasm";
+import { useDispatch, useSelector } from "react-redux";
+import { deletePassword, fetchPasswords } from "../vaultSlice";
 import { decryptPassword, getStoredKey } from "../../../utils/cryptoUtils";
 
 export default function VaultItem({ item, onEdit }) {
   const dispatch = useDispatch();
+
+  // const currentPage = useSelector((state) => state.vault.pageInfo.currentPage);
+  const { items, pageInfo } = useSelector((state) => state.vault);
+  const { currentPage } = pageInfo;
 
   const [showPassword, setShowPassword] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -36,13 +37,9 @@ export default function VaultItem({ item, onEdit }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedPassword, setDecryptedPassword] = useState("");
 
-  const [masterPassword, setMasterPassword] = useState("");
-  const [showMasterPassword, setShowMasterPassword] = useState(false);
-  const [error, setError] = useState(null);
-
   React.useEffect(() => {
-    setDecryptedPassword(""); // Clear the old password from memory
-    setShowPassword(false); // Hide the dots again
+    setDecryptedPassword(""); 
+    setShowPassword(false); 
   }, [item.encryptedPassword]);
 
   const strengthStyles = {
@@ -52,20 +49,18 @@ export default function VaultItem({ item, onEdit }) {
     strong: { bg: "#DBEAFE", color: "#1D4ED8" },
     "very strong": { bg: "#DCFCE7", color: "#15803D" },
   };
-  // --- Handle Decryption for Display ---
+
   const handleTogglePassword = async () => {
     if (showPassword) {
       setShowPassword(false);
       return;
     }
 
-    // If we already decrypted it once, just show it
     if (decryptedPassword) {
       setShowPassword(true);
       return;
     }
 
-    // Otherwise, decrypt it now
     setIsDecrypting(true);
     const ek = getStoredKey();
     if (!ek) {
@@ -83,39 +78,28 @@ export default function VaultItem({ item, onEdit }) {
     setShowPassword(true);
     setIsDecrypting(false);
   };
-  const handleDelete = async () => {
-    if (!masterPassword) {
-      setError("Master password is required");
-      return;
-    }
 
+  const handleDelete = async () => {
     try {
       setDeleting(true);
-      const masterPasswordHash = await sha256(masterPassword);
-
-      // Call the Redux Thunk
-      await dispatch(
-        deletePassword({
-          id: item.id,
-          masterPasswordHash,
-        })
-      ).unwrap();
-
+      // Logic simplified: we no longer pass the masterPasswordHash
+      await dispatch(deletePassword({ id: item.id })).unwrap();
+      const pageToFetch = (items.length === 1 && currentPage > 0) 
+      ? currentPage - 1 
+      : currentPage;
+      dispatch(fetchPasswords({ page: pageToFetch, size: 6 }));
       setConfirmOpen(false);
-      setMasterPassword("");
     } catch (err) {
-      setError(err.message || "Invalid master password or delete failed");
+      alert(err.message || "Delete failed");
     } finally {
       setDeleting(false);
     }
   };
+
   const handleCopy = () => {
-    // If visible, copy decrypted. If hidden but we have it, copy decrypted.
-    // If hidden and we don't have it, we must decrypt first (optional UX)
     if (decryptedPassword) {
       navigator.clipboard.writeText(decryptedPassword);
     } else {
-      // Auto-decrypt and copy
       const ek = getStoredKey();
       if (ek) {
         decryptPassword(item.encryptedPassword, item.encryptionIv, ek).then(
@@ -127,6 +111,7 @@ export default function VaultItem({ item, onEdit }) {
       }
     }
   };
+
   return (
     <>
       <Paper
@@ -136,8 +121,8 @@ export default function VaultItem({ item, onEdit }) {
           borderRadius: "16px",
           border: "1px solid rgba(0,0,0,0.08)",
           backgroundColor: "white",
-          width: "450px",
-          height: "380px",
+          width: "450px", // RESTORED
+          height: "380px", // RESTORED
           display: "flex",
           flexDirection: "column",
         }}
@@ -248,45 +233,18 @@ export default function VaultItem({ item, onEdit }) {
         </Typography>
       </Paper>
 
-      {/* CONFIRM DELETE */}
+      {/* SIMPLIFIED CONFIRM DELETE */}
       <Dialog
         open={confirmOpen}
         onClose={() => !deleting && setConfirmOpen(false)}
       >
-        <DialogTitle>Confirm deletion</DialogTitle>
+        <DialogTitle>Delete Password?</DialogTitle>
         <DialogContent>
-          <Typography sx={{ mb: 2 }}>
-            Enter your <b>master password</b> to delete <b>{item.title}</b>.
+          <Typography>
+            Are you sure you want to delete <b>{item.title}</b>? This action cannot be undone.
           </Typography>
-
-          <TextField
-            fullWidth
-            type={showMasterPassword ? "text" : "password"}
-            label="Master Password"
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            disabled={deleting}
-            error={!!error}
-            helperText={error}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowMasterPassword(!showMasterPassword)}
-                  >
-                    {showMasterPassword ? (
-                      <VisibilityOffIcon />
-                    ) : (
-                      <VisibilityIcon />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
         </DialogContent>
-
-        <DialogActions>
+        <DialogActions sx={{ pb: 2, px: 3 }}>
           <Button onClick={() => setConfirmOpen(false)} disabled={deleting}>
             Cancel
           </Button>
@@ -295,9 +253,9 @@ export default function VaultItem({ item, onEdit }) {
             variant="contained"
             onClick={handleDelete}
             disabled={deleting}
-            startIcon={deleting ? <CircularProgress size={16} /> : null}
+            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            Delete
+            Confirm Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -305,7 +263,6 @@ export default function VaultItem({ item, onEdit }) {
   );
 }
 
-/* ---------- Helper ---------- */
 function Row({ label, value, copyValue }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
