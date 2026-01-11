@@ -18,8 +18,9 @@ import { downloadCSV, parseCSV } from "../../../utils/csvUtils";
 
 export default function VaultHeader({ onLogout }) {
   const dispatch = useDispatch();
+
+  const totalStored = useSelector((state) => state.vault.pageInfo.totalElements || 0);
   const items = useSelector((state) => state.vault.items);
-  const count = items?.length || 0;
   const fileInputRef = useRef(null);
 
   // State
@@ -121,7 +122,7 @@ export default function VaultHeader({ onLogout }) {
               Password Vault
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {count} password{count !== 1 ? "s" : ""} stored
+              {totalStored} password{totalStored !== 1 ? "s" : ""} stored
             </Typography>
           </Box>
         </Box>
