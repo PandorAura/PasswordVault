@@ -7,16 +7,23 @@ const API_BASE = "/api/passwords";
 
 export const fetchPasswords = createAsyncThunk(
   "vault/fetch",
-  async ({ page = 0, size = 6 }, { rejectWithValue }) => {
+  async (
+    { page = 0, size = 6, search = "", category = "all" },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await apiClient.get(API_BASE, { params: { page, size } });
+      const response = await apiClient.get(API_BASE, {
+        params: { page, size, search, category },
+      });
 
       const ek = getStoredKey();
       const rawItems = response.data.content.map((item) => ({
         ...item,
         username: item.usernameOrEmail,
         url: item.websiteUrl,
-        updatedAt: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : item.updatedAt,
+        updatedAt: item.updatedAt
+          ? new Date(item.updatedAt).toLocaleDateString()
+          : item.updatedAt,
       }));
 
       const items = ek
@@ -89,7 +96,9 @@ export const addPassword = createAsyncThunk("vault/add", async (passwordData) =>
     url: savedData.websiteUrl,
     password: passwordData.password,
     strength: calculatedStrength,
-    updatedAt: savedData.updatedAt ? new Date(savedData.updatedAt).toLocaleDateString() : currentDate,
+    updatedAt: savedData.updatedAt
+      ? new Date(savedData.updatedAt).toLocaleDateString()
+      : currentDate,
     encryptedPassword: ciphertext,
     encryptionIv: iv,
   };
@@ -154,12 +163,18 @@ export const exportVault = createAsyncThunk(
       const ek = getStoredKey();
       if (!ek) throw new Error("Vault is locked. Please re-login.");
 
-      const response = await apiClient.get(API_BASE, { params: { page: 0, size: 1000 } });
+      const response = await apiClient.get(API_BASE, {
+        params: { page: 0, size: 1000 },
+      });
       const encryptedItems = response.data.content;
 
       return await Promise.all(
         encryptedItems.map(async (item) => {
-          const decryptedPwd = await decryptPassword(item.encryptedPassword, item.encryptionIv, ek);
+          const decryptedPwd = await decryptPassword(
+            item.encryptedPassword,
+            item.encryptionIv,
+            ek
+          );
           return {
             title: item.title,
             username: item.usernameOrEmail,
@@ -242,7 +257,9 @@ const vaultSlice = createSlice({
         }
       })
       .addCase(updatePassword.fulfilled, (state, action) => {
-        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        const index = state.items.findIndex(
+          (item) => item.id === action.payload.id
+        );
         if (index !== -1) {
           state.items[index] = {
             ...state.items[index],
