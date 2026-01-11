@@ -8,14 +8,17 @@ import {
   Button,
   Tabs,
   Tab,
-  Box,
   Stack,
   Switch,
   Slider,
   Typography,
   CircularProgress,
   Alert,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useDispatch } from "react-redux";
 import { addPassword } from "../vaultSlice";
 
@@ -25,6 +28,7 @@ export default function AddPasswordModal({ open, onClose }) {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -38,7 +42,6 @@ export default function AddPasswordModal({ open, onClose }) {
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
 
-  // Password generator settings
   const [length, setLength] = useState(16);
   const [includeUpper, setIncludeUpper] = useState(true);
   const [includeLower, setIncludeLower] = useState(true);
@@ -62,7 +65,6 @@ export default function AddPasswordModal({ open, onClose }) {
     setForm({ ...form, password: pwd });
   };
 
-  // Inside handleSubmit
   const handleSubmit = async () => {
     if (!form.title || !form.password) {
       setError("Title and Password are required.");
@@ -90,12 +92,7 @@ export default function AddPasswordModal({ open, onClose }) {
       fullWidth
       maxWidth="sm"
     >
-      <DialogTitle sx={{ fontWeight: 600 }}>
-        Add New Password
-        <Typography variant="body2" color="text.secondary">
-          Create a new entry for your vault
-        </Typography>
-      </DialogTitle>
+      <DialogTitle>Add password</DialogTitle>
 
       <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ px: 3 }}>
         <Tab label="Details" />
@@ -103,111 +100,143 @@ export default function AddPasswordModal({ open, onClose }) {
       </Tabs>
 
       <DialogContent>
-        {error && <Alert severity="error">{error}</Alert>}
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          {error && <Alert severity="error">{error}</Alert>}
 
-        {activeTab === 0 && (
-          <Stack spacing={2} sx={{ mt: 2 }}>
-            <TextField
-              label="Title"
-              fullWidth
-              value={form.title}
-              onChange={handleChange("title")}
-              disabled={loading}
-            />
+          {activeTab === 0 && (
+            <>
+              <TextField
+                fullWidth
+                value={form.title}
+                onChange={handleChange("title")}
+                placeholder="Title"
+                disabled={loading}
+              />
 
-            <TextField
-              label="Username / Email"
-              fullWidth
-              value={form.username}
-              onChange={handleChange("username")}
-              disabled={loading}
-            />
+              <TextField
+                fullWidth
+                value={form.username}
+                onChange={handleChange("username")}
+                placeholder="Username / Email"
+                disabled={loading}
+              />
 
-            <TextField
-              label="Password"
-              fullWidth
-              value={form.password}
-              onChange={handleChange("password")}
-              disabled={loading}
-            />
+              <TextField
+                fullWidth
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange("password")}
+                placeholder="Password"
+                disabled={loading}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((v) => !v)}
+                        edge="end"
+                        aria-label="toggle password visibility"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
 
-            <TextField
-              label="Website URL"
-              fullWidth
-              value={form.url}
-              onChange={handleChange("url")}
-              disabled={loading}
-            />
+              <TextField
+                fullWidth
+                value={form.url}
+                onChange={handleChange("url")}
+                placeholder="Website URL"
+                disabled={loading}
+              />
 
-            <TextField
-              label="Category"
-              select
-              fullWidth
-              SelectProps={{ native: true }}
-              value={form.category}
-              onChange={handleChange("category")}
-              disabled={loading}
-            >
-              <option value="GENERAL">General</option>
-              <option value="SOCIAL">Social</option>
-              <option value="EMAIL">Email</option>
-              <option value="BANKING">Banking</option>
-              <option value="WORK">Work</option>
-              <option value="ENTERTAINMENT">Entertainment</option>
-              <option value="OTHER">Other</option>
-            </TextField>
+              <TextField
+                select
+                fullWidth
+                SelectProps={{ native: true }}
+                value={form.category}
+                onChange={handleChange("category")}
+                disabled={loading}
+              >
+                <option value="GENERAL">General</option>
+                <option value="SOCIAL">Social</option>
+                <option value="EMAIL">Email</option>
+                <option value="BANKING">Banking</option>
+                <option value="WORK">Work</option>
+                <option value="ENTERTAINMENT">Entertainment</option>
+                <option value="OTHER">Other</option>
+              </TextField>
 
-            <TextField
-              label="Notes"
-              fullWidth
-              multiline
-              rows={3}
-              value={form.notes}
-              onChange={handleChange("notes")}
-              disabled={loading}
-            />
-          </Stack>
-        )}
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                value={form.notes}
+                onChange={handleChange("notes")}
+                placeholder="Notes"
+                disabled={loading}
+              />
+            </>
+          )}
 
-        {activeTab === 1 && (
-          <Stack spacing={3} sx={{ mt: 2 }}>
-            <TextField
-              label="Generated password"
-              fullWidth
-              value={form.password}
-              readOnly
-            />
+          {activeTab === 1 && (
+            <>
+              <TextField
+                fullWidth
+                value={form.password}
+                type={showPassword ? "text" : "password"}
+                placeholder="Generated password"
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((v) => !v)}
+                        edge="end"
+                        aria-label="toggle password visibility"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
 
-            <Typography>Length: {length}</Typography>
-            <Slider min={8} max={32} value={length} onChange={(e, v) => setLength(v)} />
+              <Typography>Length: {length}</Typography>
+              <Slider
+                min={8}
+                max={32}
+                value={length}
+                onChange={(e, v) => setLength(v)}
+              />
 
-            <Toggle label="Uppercase" value={includeUpper} onChange={setIncludeUpper} />
-            <Toggle label="Lowercase" value={includeLower} onChange={setIncludeLower} />
-            <Toggle label="Numbers" value={includeNums} onChange={setIncludeNums} />
-            <Toggle label="Symbols" value={includeSymbols} onChange={setIncludeSymbols} />
+              <Toggle label="Uppercase" value={includeUpper} onChange={setIncludeUpper} />
+              <Toggle label="Lowercase" value={includeLower} onChange={setIncludeLower} />
+              <Toggle label="Numbers" value={includeNums} onChange={setIncludeNums} />
+              <Toggle label="Symbols" value={includeSymbols} onChange={setIncludeSymbols} />
 
-            <Button variant="contained" onClick={generatePassword}>
-              Generate
-            </Button>
-          </Stack>
-        )}
+              <Button variant="contained" onClick={generatePassword}>
+                Generate
+              </Button>
+            </>
+          )}
+        </Stack>
       </DialogContent>
 
-      {activeTab === 0 && (
-        <DialogActions>
-          <Button onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={loading}
-            startIcon={loading && <CircularProgress size={20} />}
-          >
-            {loading ? "Saving..." : "Add Password"}
-          </Button>
-        </DialogActions>
-      )}
+      <DialogActions>
+        <Button variant="outlined" onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading || activeTab !== 0}
+          startIcon={loading ? <CircularProgress size={16} /> : null}
+        >
+          {loading ? "Saving..." : "Add Password"}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }
