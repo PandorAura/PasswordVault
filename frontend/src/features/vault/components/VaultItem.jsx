@@ -26,6 +26,7 @@ import { useDispatch } from "react-redux";
 import { deletePassword } from "../vaultSlice";
 import { sha256 } from "hash-wasm";
 import { decryptPassword, getStoredKey } from "../../../utils/cryptoUtils";
+import { normalizeUrl } from "../../../utils/normalizeURL";
 
 export default function VaultItem({ item, onEdit }) {
   const dispatch = useDispatch();
@@ -133,7 +134,7 @@ export default function VaultItem({ item, onEdit }) {
         elevation={0}
         sx={{
           padding: 2.5,
-          borderRadius: "16px",
+          borderRadius: 3,
           border: "1px solid rgba(0,0,0,0.08)",
           backgroundColor: "white",
           width: "450px",
@@ -218,20 +219,38 @@ export default function VaultItem({ item, onEdit }) {
           label="URL:"
           value={
             item.url ? (
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <Stack direction="row" spacing={1} alignItems="center">
+                {/* URL text */}
+                <span
                   style={{
-                    color: "#6366F1",
-                    fontWeight: 500,
-                    textDecoration: "none",
+                    color: "#374151",
+                    fontSize: "0.9rem",
+                    maxWidth: 220,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
+                  title={normalizeUrl(item.url)}
                 >
-                  Visit
-                </a>
-                <OpenInNewIcon fontSize="small" sx={{ color: "#6366F1" }} />
+                  {item.url}
+                </span>
+
+                {/* Visit button */}
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <a
+                    href={normalizeUrl(item.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "primary.main",
+                      fontWeight: 500,
+                      textDecoration: "none",
+                    }}
+                  >
+                    Visit
+                  </a>
+                  <OpenInNewIcon fontSize="small" sx={{ color: "primary.main" }} />
+                </Stack>
               </Stack>
             ) : (
               "—"

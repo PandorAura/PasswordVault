@@ -28,6 +28,7 @@ export default function VaultToolbar({
         justifyContent: "center",
         paddingX: 3,
         marginTop: 3,
+        marginBottom: 3,
       }}
     >
       <Paper
@@ -78,8 +79,6 @@ export default function VaultToolbar({
               sx={{
                 width: "250px",
                 height: "48px",
-                backgroundColor: "white",
-                borderRadius: 1,
               }}
             >
               <MenuItem value="all">All</MenuItem>
@@ -91,42 +90,30 @@ export default function VaultToolbar({
             </Select>
 
             {/* CHECK BREACHES */}
-            <Button
-              variant="outlined"
-              startIcon={<SecurityIcon />}
-              onClick={onCheckBreaches}
-              sx={{
-                height: "48px",
-                width: "250px",
-                backgroundColor: "white",
-                borderColor: "#E2E8F0",
-                "&:hover": {
-                  borderColor: "#c7cdd6",
-                  backgroundColor: "#f9f9f9",
-                },
-              }}
-            >
-              Check All Breaches
-            </Button>
+        <Button
+          variant="outlined"
+          startIcon={<SecurityIcon />}
+          onClick={onCheckBreaches}
+          sx={{
+            height: "48px",
+            width: "250px",
+          }}
+        >
+          Check All Breaches
+        </Button>
 
-            {/* ADD PASSWORD */}
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={onOpenModal}
-              sx={{
-                height: "48px",
-                width: "250px",
-                backgroundColor: "black",
-                color: "white",
-                borderRadius: "10px",
-                "&:hover": {
-                  backgroundColor: "#222",
-                },
-              }}
-            >
-              Add Password
-            </Button>
+        {/* ADD PASSWORD */}
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={onOpenModal}
+          sx={{
+            height: "48px",
+            width: "250px",
+          }}
+        >
+          Add Password
+        </Button>
           </Box>
         </Box>
       </Paper>
