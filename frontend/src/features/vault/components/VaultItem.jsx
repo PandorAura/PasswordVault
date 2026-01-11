@@ -134,7 +134,7 @@ export default function VaultItem({ item, onEdit }) {
         elevation={0}
         sx={{
           padding: 2.5,
-          borderRadius: "16px",
+          borderRadius: 3,
           border: "1px solid rgba(0,0,0,0.08)",
           backgroundColor: "white",
           width: "450px",
@@ -242,14 +242,14 @@ export default function VaultItem({ item, onEdit }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      color: "#6366F1",
+                      color: "primary.main",
                       fontWeight: 500,
                       textDecoration: "none",
                     }}
                   >
                     Visit
                   </a>
-                  <OpenInNewIcon fontSize="small" sx={{ color: "#6366F1" }} />
+                  <OpenInNewIcon fontSize="small" sx={{ color: "primary.main" }} />
                 </Stack>
               </Stack>
             ) : (

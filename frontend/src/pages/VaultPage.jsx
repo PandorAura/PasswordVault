@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../features/auth/authSlice";
+import { Box } from "@mui/material";
 
 export default function VaultPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +31,12 @@ export default function VaultPage() {
   };
 
   return (
-    <div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "background.default",
+      }}
+    >
       <VaultHeader onLogout={handleLogout} />
 
       <VaultToolbar
@@ -56,6 +62,6 @@ export default function VaultPage() {
         onClose={() => setIsEditOpen(false)}
         item={editingItem}
       />
-    </div>
+    </Box>
   );
 }

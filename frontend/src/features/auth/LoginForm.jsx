@@ -113,7 +113,7 @@ export default function LoginForm() {
         padding: 4,
         width: "100%",
         maxWidth: 440,
-        borderRadius: "16px",
+        borderRadius: 3,
         border: "1px solid rgba(0,0,0,0.08)",
         backgroundColor: "white",
         boxShadow: "0px 1px 4px rgba(0,0,0,0.06)",
@@ -141,7 +141,7 @@ export default function LoginForm() {
                 justifyContent: "center",
               }}
             >
-              <ShieldOutlinedIcon sx={{ color: "#6366f1", fontSize: 32 }} />
+              <ShieldOutlinedIcon sx={{ color: "primary.main", fontSize: 32 }} />
             </Box>
             <Typography
               variant="h5"
@@ -171,7 +171,7 @@ export default function LoginForm() {
               onChange={(e) => setName(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
+                  borderRadius: 1.25,
                 },
               }}
             />
@@ -186,7 +186,7 @@ export default function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
+                borderRadius: 1.25,
               },
             }}
           />
@@ -200,7 +200,7 @@ export default function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
+                borderRadius: 1.25,
               },
             }}
             InputProps={{
@@ -212,7 +212,7 @@ export default function LoginForm() {
                     sx={{
                       color: "text.secondary",
                       "&:hover": {
-                        color: "#6366F1",
+                        color: "primary.main",
                         backgroundColor: "rgba(99, 102, 241, 0.08)",
                       },
                     }}
@@ -232,7 +232,7 @@ export default function LoginForm() {
             <Alert
               severity={isSuccess ? "success" : "error"}
               sx={{
-                borderRadius: "10px",
+                borderRadius: 1.25,
               }}
             >
               {message}
@@ -245,18 +245,10 @@ export default function LoginForm() {
             fullWidth
             disabled={isLoading}
             sx={{
-              backgroundColor: "black",
-              color: "white",
-              borderRadius: "10px",
+              borderRadius: 1.25,
               textTransform: "none",
               padding: "12px",
               fontWeight: 500,
-              "&:hover": {
-                backgroundColor: "#1f1f1f",
-              },
-              "&:disabled": {
-                backgroundColor: "#9ca3af",
-              },
             }}
           >
             {isLoading
@@ -273,7 +265,7 @@ export default function LoginForm() {
             textAlign="center"
             sx={{
               cursor: "pointer",
-              color: "#6366F1",
+              color: "primary.main",
               fontWeight: 500,
               "&:hover": {
                 textDecoration: "underline",

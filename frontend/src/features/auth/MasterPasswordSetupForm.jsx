@@ -146,7 +146,7 @@ export default function MasterPasswordSetupForm({ onSuccess }) {
               variant="determinate"
               value={(strength.score / 5) * 100}
               color={getStrengthColor(strength.score)}
-              sx={{ height: 6, borderRadius: 5 }}
+              sx={{ height: 6, borderRadius: 3 }}
             />
             <Typography
               variant="caption"
@@ -194,7 +194,7 @@ export default function MasterPasswordSetupForm({ onSuccess }) {
             alignItems: "center",
             gap: 1,
             padding: 1.5,
-            borderRadius: 1,
+            borderRadius: 2,
             backgroundColor: (theme) => theme.palette.action.hover,
           }}
         >
@@ -206,7 +206,11 @@ export default function MasterPasswordSetupForm({ onSuccess }) {
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ borderRadius: 1 }}>
+          <Alert
+            severity="error"
+            sx={{ borderRadius: 2 }}
+            onClose={() => setError(null)}
+          >
             {error}
           </Alert>
         )}

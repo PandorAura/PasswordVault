@@ -11,7 +11,7 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#F9FAFB",
+        backgroundColor: "background.default",
         padding: 3,
       }}
     >
