@@ -137,7 +137,7 @@ export default function VaultItem({ item, onEdit }) {
           borderRadius: 3,
           border: "1px solid rgba(0,0,0,0.08)",
           backgroundColor: "white",
-          width: "420px",
+          width: "100%",
           height: "380px",
           display: "flex",
           flexDirection: "column",

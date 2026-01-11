@@ -26,17 +26,17 @@ export default function VaultToolbar({
         width: "100%",
         display: "flex",
         justifyContent: "center",
-        paddingX: 3,
-        marginTop: 3,
-        marginBottom: 3,
+        paddingX: { xs: 2, sm: 3 },
+        marginTop: { xs: 2, sm: 3 },
+        marginBottom: { xs: 2, sm: 3 },
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          width: "100%",
+          width: { xs: "100%", sm: "100%", md: "90%" },
           maxWidth: "1400px",
-          padding: 2,
+          padding: { xs: 1.5, sm: 2 },
           backgroundColor: "white",
           borderRadius: 1,
         }}

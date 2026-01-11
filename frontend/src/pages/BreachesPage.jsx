@@ -325,25 +325,25 @@ export default function BreachesPage() {
           >
             <Chip 
               label={`Total: ${stats.total}`}
-              size={{ xs: "small", sm: "medium" }}
+              size="small"
               sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
             />
             <Chip 
               label={`Breached: ${stats.pwned}`} 
               color={stats.pwned ? "error" : "default"}
-              size={{ xs: "small", sm: "medium" }}
+              size="small"
               sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
             />
             <Chip 
               label={`Safe: ${stats.safe}`} 
               color="success"
-              size={{ xs: "small", sm: "medium" }}
+              size="small"
               sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
             />
             <Chip
               label={`Failed: ${stats.failed}`}
               color={stats.failed ? "warning" : "default"}
-              size={{ xs: "small", sm: "medium" }}
+              size="small"
               sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
             />
           </Stack>
@@ -483,34 +483,34 @@ export default function BreachesPage() {
                       <Chip
                         color="error"
                         label={`Pwned ${r.count}×`}
+                        size="small"
                         sx={{ 
                           fontWeight: 600,
                           fontSize: { xs: "0.7rem", sm: "0.875rem" },
                         }}
-                        size={{ xs: "small", sm: "medium" }}
                       />
                     )}
                     {r.status === "safe" && (
                       <Chip
                         color="success"
                         label="Safe"
+                        size="small"
                         sx={{ 
                           fontWeight: 600,
                           fontSize: { xs: "0.7rem", sm: "0.875rem" },
                         }}
-                        size={{ xs: "small", sm: "medium" }}
                       />
                     )}
                     {r.status === "error" && (
                       <Chip
                         color="warning"
                         label={`Failed: ${r.message || "Unknown error"}`}
+                        size="small"
                         sx={{ 
                           fontWeight: 600,
                           maxWidth: { xs: "100%", sm: 520 },
                           fontSize: { xs: "0.7rem", sm: "0.875rem" },
                         }}
-                        size={{ xs: "small", sm: "medium" }}
                       />
                     )}
 

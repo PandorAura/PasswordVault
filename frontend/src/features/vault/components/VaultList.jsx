@@ -4,10 +4,9 @@ import {
   Typography,
   Pagination,
   Stack,
-  CircularProgress,
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchPasswords } from "../vaultSlice"; // Ensure this is imported
+import { fetchPasswords } from "../vaultSlice"; 
 import VaultItem from "./VaultItem";
 import { useNavigate } from "react-router-dom";
 import { getStoredKey } from "../../../utils/cryptoUtils";
@@ -20,11 +19,8 @@ export default function VaultList({ onEditItem }) {
   const itemsPerPage = 6;
 
   useEffect(() => {
-    // Check if key exists in RAM
     const key = getStoredKey();
     if (!key) {
-      // If no key, force user to Unlock page immediately
-      // (Don't force Logout, just Unlock)
       navigate("/check-master");
     }
   }, [navigate]);
@@ -35,7 +31,6 @@ export default function VaultList({ onEditItem }) {
 
   const handleChangePage = (event, value) => {
     dispatch(fetchPasswords({ page: value - 1, size: itemsPerPage }));
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -46,16 +41,16 @@ export default function VaultList({ onEditItem }) {
       sx={{
         width: "100%",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
-        paddingX: 3,
+        paddingX: { xs: 2, sm: 3 },
         paddingBottom: 5,
       }}
     >
-      {/* 2. INNER CONTAINER: */}
-      <Box sx={{ width: "100%", maxWidth: "1400px", margin: "0 auto" }}>
-        {/* 3. EMPTY STATE: */}
+      {/* INNER CONTAINER: Matches VaultToolbar Paper exactly */}
+      <Box sx={{ 
+        width: { xs: "100%", sm: "100%", md: "90%" },
+        maxWidth: "1400px",
+      }}>
         {!hasItems && status === "succeeded" && (
           <Typography
             variant="h6"
@@ -67,28 +62,27 @@ export default function VaultList({ onEditItem }) {
           </Typography>
         )}
 
+        {/* --- GRID CONTAINER START --- */}
         <Box
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 3,
-            justifyContent: "center",
+            display: "grid",
+            // 1 column on mobile, 3 columns on desktop to fill width perfectly
+            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+            gap: { xs: 2, sm: 3 },
             width: "100%",
-            maxWidth: "1400px",
-            margin: "0 auto",
           }}
         >
           {items.map((item) => (
             <VaultItem key={item.id} item={item} onEdit={onEditItem} />
           ))}
         </Box>
+        {/* --- GRID CONTAINER END --- */}
 
-        {/* 4. PAGINATION: */}
         {pageInfo?.totalPages > 1 && (
           <Stack spacing={2} alignItems="center" sx={{ marginTop: 4 }}>
             <Pagination
               count={pageInfo.totalPages}
-              page={pageInfo.currentPage + 1} // Sync back to 1-based for UI
+              page={pageInfo.currentPage + 1}
               onChange={handleChangePage}
               color="primary"
               showFirstButton
