@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import {
   Box,
-  Grid,
   Typography,
   Pagination,
   Stack,
@@ -55,7 +54,7 @@ export default function VaultList({ onEditItem }) {
       }}
     >
       {/* 2. INNER CONTAINER: */}
-      <Box sx={{ width: "100%", maxWidth: "1400px" }}>
+      <Box sx={{ width: "100%", maxWidth: "1400px", margin: "0 auto" }}>
         {/* 3. EMPTY STATE: */}
         {!hasItems && status === "succeeded" && (
           <Typography
@@ -68,21 +67,21 @@ export default function VaultList({ onEditItem }) {
           </Typography>
         )}
 
-        <Grid container spacing={3}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 3,
+            justifyContent: "center",
+            width: "100%",
+            maxWidth: "1400px",
+            margin: "0 auto",
+          }}
+        >
           {items.map((item) => (
-            <Grid
-              key={item.id}
-              item
-              xs={12}
-              sm={6}
-              md={4}
-              // Added display: flex to ensure cards are equal height
-              sx={{ display: "flex" }}
-            >
-              <VaultItem item={item} onEdit={onEditItem} />
-            </Grid>
+            <VaultItem key={item.id} item={item} onEdit={onEditItem} />
           ))}
-        </Grid>
+        </Box>
 
         {/* 4. PAGINATION: */}
         {pageInfo?.totalPages > 1 && (

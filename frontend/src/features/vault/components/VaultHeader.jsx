@@ -90,48 +90,94 @@ export default function VaultHeader({ onLogout }) {
         elevation={0}
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
-          padding: 2,
-          paddingX: 3,
+          alignItems: { xs: "stretch", sm: "center" },
+          padding: { xs: 1.5, sm: 2 },
+          paddingX: { xs: 2, sm: 3 },
           borderRadius: 0,
           borderBottom: "1px solid #e5e7eb",
           backgroundColor: "white",
+          gap: { xs: 1.5, sm: 0 },
         }}
       >
         {/* LEFT SIDE */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: { xs: 1.5, sm: 2 },
+            width: { xs: "100%", sm: "auto" },
+            flexShrink: 0,
+          }}
+        >
           {/* Icon container */}
           <Box
             sx={{
-              width: 48,
-              height: 48,
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
               backgroundColor: "rgba(99, 102, 241, 0.1)",
               borderRadius: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            <ShieldOutlinedIcon sx={{ color: "primary.main", fontSize: 28 }} />
+            <ShieldOutlinedIcon 
+              sx={{ 
+                color: "primary.main", 
+                fontSize: { xs: 24, sm: 28 } 
+              }} 
+            />
           </Box>
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600,
+                fontSize: { xs: "1rem", sm: "1.25rem" },
+                lineHeight: 1.2,
+              }}
+            >
               Password Vault
             </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: "text.secondary",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              }}
+            >
               {count} password{count !== 1 ? "s" : ""} stored
             </Typography>
           </Box>
         </Box>
 
         {/* RIGHT SIDE BUTTONS */}
-        <Stack direction="row" spacing={2}>
+        <Stack 
+          direction={{ xs: "row", sm: "row" }} 
+          spacing={{ xs: 1, sm: 2 }}
+          sx={{ 
+            flexShrink: 0,
+            width: { xs: "100%", sm: "auto" },
+            justifyContent: { xs: "space-between", sm: "flex-end" },
+          }}
+        >
           <Button
             variant="outlined"
-            startIcon={loading ? <CircularProgress size={16} /> : <FileUploadIcon />}
-            sx={{ textTransform: "none" }}
+            startIcon={loading ? <CircularProgress size={14} /> : <FileUploadIcon />}
+            sx={{ 
+              textTransform: "none",
+              flex: { xs: 1, sm: "0 0 auto" },
+              minWidth: { xs: 0, sm: "auto" },
+              paddingX: { xs: 1, sm: 2 },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiButton-startIcon": {
+                marginRight: { xs: 0.5, sm: 1 },
+              },
+            }}
             onClick={handleImportClick}
             disabled={loading}
           >
@@ -148,7 +194,16 @@ export default function VaultHeader({ onLogout }) {
           <Button
             variant="outlined"
             startIcon={<FileDownloadIcon />}
-            sx={{ textTransform: "none" }}
+            sx={{ 
+              textTransform: "none",
+              flex: { xs: 1, sm: "0 0 auto" },
+              minWidth: { xs: 0, sm: "auto" },
+              paddingX: { xs: 1, sm: 2 },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiButton-startIcon": {
+                marginRight: { xs: 0.5, sm: 1 },
+              },
+            }}
             onClick={() => setOpen(true)}
           >
             Export
@@ -157,7 +212,16 @@ export default function VaultHeader({ onLogout }) {
           <Button
             variant="outlined"
             startIcon={<LogoutIcon />}
-            sx={{ textTransform: "none" }}
+            sx={{ 
+              textTransform: "none",
+              flex: { xs: 1, sm: "0 0 auto" },
+              minWidth: { xs: 0, sm: "auto" },
+              paddingX: { xs: 1, sm: 2 },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiButton-startIcon": {
+                marginRight: { xs: 0.5, sm: 1 },
+              },
+            }}
             onClick={onLogout}
           >
             Lock Vault
