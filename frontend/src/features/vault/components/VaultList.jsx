@@ -46,7 +46,7 @@ export default function VaultList({ onEditItem }) {
         paddingBottom: 5,
       }}
     >
-      {/* INNER CONTAINER: Matches VaultToolbar Paper exactly */}
+      {/* INNER CONTAINER */}
       <Box sx={{ 
         width: { xs: "100%", sm: "100%", md: "90%" },
         maxWidth: "1400px",
@@ -66,7 +66,6 @@ export default function VaultList({ onEditItem }) {
         <Box
           sx={{
             display: "grid",
-            // 1 column on mobile, 3 columns on desktop to fill width perfectly
             gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
             gap: { xs: 2, sm: 3 },
             width: "100%",

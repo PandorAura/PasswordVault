@@ -50,7 +50,7 @@ export default function VaultToolbar({
             gap: 2,
           }}
         >
-          {/* SEARCH BAR (responsive width) */}
+          {/* SEARCH BAR */}
           <TextField
             placeholder="Search passwords..."
             value={search}

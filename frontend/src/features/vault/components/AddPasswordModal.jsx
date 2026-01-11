@@ -62,7 +62,6 @@ export default function AddPasswordModal({ open, onClose }) {
     setForm({ ...form, password: pwd });
   };
 
-  // Inside handleSubmit
   const handleSubmit = async () => {
     if (!form.title || !form.password) {
       setError("Title and Password are required.");
@@ -71,7 +70,6 @@ export default function AddPasswordModal({ open, onClose }) {
 
     setLoading(true);
     try {
-      // Dispatch the thunk and unwrap to catch errors locally if needed
       await dispatch(addPassword(form)).unwrap();
 
       onClose();

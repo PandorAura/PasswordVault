@@ -45,8 +45,8 @@ export default function VaultItem({ item, onEdit }) {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" });
 
   React.useEffect(() => {
-    setDecryptedPassword(""); // Clear the old password from memory
-    setShowPassword(false); // Hide the dots again
+    setDecryptedPassword(""); 
+    setShowPassword(false); 
   }, [item.encryptedPassword]);
 
   const strengthStyles = {
@@ -56,20 +56,18 @@ export default function VaultItem({ item, onEdit }) {
     strong: { bg: "#DBEAFE", color: "#1D4ED8" },
     "very strong": { bg: "#DCFCE7", color: "#15803D" },
   };
-  // --- Handle Decryption for Display ---
+
   const handleTogglePassword = async () => {
     if (showPassword) {
       setShowPassword(false);
       return;
     }
 
-    // If we already decrypted it once, just show it
     if (decryptedPassword) {
       setShowPassword(true);
       return;
     }
 
-    // Otherwise, decrypt it now
     setIsDecrypting(true);
     const ek = getStoredKey();
     if (!ek) {
@@ -97,7 +95,6 @@ export default function VaultItem({ item, onEdit }) {
       setDeleting(true);
       const masterPasswordHash = await sha256(masterPassword);
 
-      // Call the Redux Thunk
       await dispatch(
         deletePassword({
           id: item.id,
@@ -115,13 +112,10 @@ export default function VaultItem({ item, onEdit }) {
   };
   const handleCopy = async () => {
     try {
-      // If visible, copy decrypted. If hidden but we have it, copy decrypted.
-      // If hidden and we don't have it, we must decrypt first (optional UX)
       if (decryptedPassword) {
         await navigator.clipboard.writeText(decryptedPassword);
         setSnackbar({ open: true, message: "Password copied to clipboard!", type: "success" });
       } else {
-        // Auto-decrypt and copy
         const ek = getStoredKey();
         if (ek) {
           const res = await decryptPassword(item.encryptedPassword, item.encryptionIv, ek);

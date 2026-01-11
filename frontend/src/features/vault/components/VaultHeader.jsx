@@ -22,7 +22,6 @@ export default function VaultHeader({ onLogout }) {
   const count = items?.length || 0;
   const fileInputRef = useRef(null);
 
-  // State
   const [open, setOpen] = useState(false);
   const [masterPassword, setMasterPassword] = useState("");
   const [showMasterPassword, setShowMasterPassword] = useState(false);
@@ -62,14 +61,11 @@ export default function VaultHeader({ onLogout }) {
         setLoading(true);
         const text = e.target.result;
         
-        // 1. Parse CSV to JSON
         const parsedData = parseCSV(text); 
         console.log("Parsed Data:", parsedData);
         
-        // 2. Run the Import (Encryption happens inside this thunk)
         await dispatch(importVault(parsedData)).unwrap();
         
-        // 3. Refresh the list so the new items appear
         dispatch(fetchPasswords({ page: 0, size: 6 }));
         
         alert(`Successfully imported ${parsedData.length} items!`);
@@ -78,7 +74,7 @@ export default function VaultHeader({ onLogout }) {
         alert("Failed to parse or import CSV. Ensure the format is correct.");
       } finally {
         setLoading(false);
-        event.target.value = ""; // Reset file input
+        event.target.value = ""; 
       }
     };
     reader.readAsText(file);
