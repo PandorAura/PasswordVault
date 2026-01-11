@@ -1,8 +1,7 @@
 package com.team2.passwordvault.backend.security;
 
-// Purpose: Security configuration for the backend. Configures JWT filter, stateless session
-// management, and CORS. Update CORS origins and JWT settings for production deployments.
 import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -40,6 +39,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                        (request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
+                ))
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -48,6 +51,9 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/health/**"
                         ).permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/vault/salt").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/breaches/pwnedpasswords/range/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
@@ -58,8 +64,6 @@ public class SecurityConfig {
     }
 
 
-    // CORS configuration: currently allows the frontend dev origin. Update this list before
-    // deploying to production (use env/config to manage allowed origins).
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

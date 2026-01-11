@@ -24,14 +24,17 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { useDispatch } from "react-redux";
-import { deletePassword } from "../vaultSlice";
-import { sha256 } from "hash-wasm";
+import { useDispatch, useSelector } from "react-redux";
+import { deletePassword, fetchPasswords } from "../vaultSlice";
 import { decryptPassword, getStoredKey } from "../../../utils/cryptoUtils";
 import { normalizeUrl } from "../../../utils/normalizeURL";
 
 export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError }) {
   const dispatch = useDispatch();
+
+  // const currentPage = useSelector((state) => state.vault.pageInfo.currentPage);
+  const { items, pageInfo } = useSelector((state) => state.vault);
+  const { currentPage } = pageInfo;
 
   const [showPassword, setShowPassword] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -85,12 +88,8 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
     setShowPassword(true);
     setIsDecrypting(false);
   };
-  const handleDelete = async () => {
-    if (!masterPassword) {
-      setError("Master password is required");
-      return;
-    }
 
+  const handleDelete = async () => {
     try {
       setDeleting(true);
       setError(null);
@@ -167,7 +166,6 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
           },
         }}
       >
-        {/* HEADER */}
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -207,7 +205,6 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
 
         <Divider sx={{ my: 2 }} />
 
-        {/* BODY */}
         <Row
           label="Username:"
           value={item.username}
@@ -336,40 +333,13 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
         open={confirmOpen}
         onClose={() => !deleting && setConfirmOpen(false)}
       >
-        <DialogTitle>Confirm deletion</DialogTitle>
+        <DialogTitle>Delete Password?</DialogTitle>
         <DialogContent>
-          <Typography sx={{ mb: 2 }}>
-            Enter your <b>master password</b> to delete <b>{item.title}</b>.
+          <Typography>
+            Are you sure you want to delete <b>{item.title}</b>? This action cannot be undone.
           </Typography>
-
-          <TextField
-            fullWidth
-            type={showMasterPassword ? "text" : "password"}
-            label="Master Password"
-            value={masterPassword}
-            onChange={(e) => setMasterPassword(e.target.value)}
-            disabled={deleting}
-            error={!!error}
-            helperText={error}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowMasterPassword(!showMasterPassword)}
-                  >
-                    {showMasterPassword ? (
-                      <VisibilityOffIcon />
-                    ) : (
-                      <VisibilityIcon />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
         </DialogContent>
-
-        <DialogActions>
+        <DialogActions sx={{ pb: 2, px: 3 }}>
           <Button onClick={() => setConfirmOpen(false)} disabled={deleting}>
             Cancel
           </Button>
@@ -378,9 +348,9 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
             variant="contained"
             onClick={handleDelete}
             disabled={deleting}
-            startIcon={deleting ? <CircularProgress size={16} /> : null}
+            startIcon={deleting ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            Delete
+            Confirm Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -408,7 +378,9 @@ function Row({ label, value, copyValue, onCopy }) {
       <Typography sx={{ width: 110, color: "text.secondary" }}>
         {label}
       </Typography>
-      <Typography sx={{ flexGrow: 1 }}>{value}</Typography>
+      <Typography component="div" sx={{ flexGrow: 1 }}>
+        {value}
+      </Typography>
       {copyValue && (
         <IconButton
           size="small"

@@ -17,6 +17,8 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useDispatch } from "react-redux";
 import { updatePassword } from "../vaultSlice";
 import { calculatePasswordStrength } from "../../../utils/passwordStregthCalculator";
@@ -26,6 +28,7 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const dispatch = useDispatch();
 
   const [activeTab, setActiveTab] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   const emptyForm = {
     title: "",
@@ -70,7 +73,6 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
 
-  // Generator settings
   const [length, setLength] = useState(16);
   const [includeUpper, setIncludeUpper] = useState(true);
   const [includeLower, setIncludeLower] = useState(true);
@@ -102,7 +104,6 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const handleSubmit = async () => {
     const errors = {};
 
-    // 1. Validation Logic
     if (!form.title.trim()) errors.title = "Title is required";
     if (!form.username.trim()) errors.username = "Username is required";
     if (!form.password.trim()) errors.password = "Password cannot be empty";
@@ -163,27 +164,9 @@ export default function EditPasswordModal({ open, onClose, item }) {
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      slotProps={{
-        paper: {
-          sx: {
-            borderRadius: 4,
-            height: "95vh",
-            maxHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-          },
-        },
-      }}
     >
-      {/* HEADER */}
-      <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
-        Edit Password
-        <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-          Modify the existing vault entry
-        </Typography>
-      </DialogTitle>
+      <DialogTitle>Edit password</DialogTitle>
 
-      {/* TABS */}
       <Tabs
         value={activeTab}
         onChange={(e, v) => setActiveTab(v)}
@@ -193,8 +176,8 @@ export default function EditPasswordModal({ open, onClose, item }) {
         <Tab label="Generator" />
       </Tabs>
 
-      <DialogContent sx={{ pt: 2 }}>
-        {/* GLOBAL ERROR ALERT */}
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
         {error && (
           <Alert
             severity="error"
@@ -206,7 +189,7 @@ export default function EditPasswordModal({ open, onClose, item }) {
         )}
 
         {activeTab === 0 && (
-          <Stack spacing={2}>
+          <>
             <TextField
               label="Title"
               fullWidth
@@ -226,11 +209,28 @@ export default function EditPasswordModal({ open, onClose, item }) {
             <TextField
               label="Password"
               fullWidth
-              type="text"
+              type={showPassword ? "text" : "password"}
               value={form.password}
               onChange={handleChange("password")}
               error={Boolean(fieldErrors.password)}
               helperText={fieldErrors.password}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((v) => !v)}
+                      edge="end"
+                      aria-label="toggle password visibility"
+                    >
+                      {showPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               label="Website URL"
@@ -241,7 +241,6 @@ export default function EditPasswordModal({ open, onClose, item }) {
               helperText={fieldErrors.url}
             />
             <TextField
-              label="Category"
               fullWidth
               select
               SelectProps={{ native: true }}
@@ -264,16 +263,34 @@ export default function EditPasswordModal({ open, onClose, item }) {
               value={form.notes}
               onChange={handleChange("notes")}
             />
-          </Stack>
+          </>
         )}
 
         {activeTab === 1 && (
-          <Stack spacing={3}>
+          <>
             <TextField
               label="Generated password"
               fullWidth
               value={form.password}
-              readOnly
+              type={showPassword ? "text" : "password"}
+              InputProps={{
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword((v) => !v)}
+                      edge="end"
+                      aria-label="toggle password visibility"
+                    >
+                      {showPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Box>
@@ -312,11 +329,12 @@ export default function EditPasswordModal({ open, onClose, item }) {
             <Button variant="contained" onClick={generatePassword}>
               Generate
             </Button>
-          </Stack>
+          </>
         )}
+        </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions>
         <Button onClick={onClose} variant="outlined">
           Cancel
         </Button>

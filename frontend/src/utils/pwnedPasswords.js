@@ -42,9 +42,6 @@ export async function fetchPwnedRange(prefix) {
     `http://localhost:8080/api/breaches/pwnedpasswords/range/${normalized}`,
     {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-      },
     }
   );
 

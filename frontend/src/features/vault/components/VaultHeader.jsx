@@ -1,8 +1,19 @@
 import React, { useState, useRef } from "react";
-import { 
-  Box, Typography, Button, Paper, Stack, Dialog, DialogTitle, 
-  DialogContent, DialogActions, TextField, InputAdornment, 
-  IconButton, CircularProgress, Alert 
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  InputAdornment,
+  IconButton,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
 
 import FileUploadIcon from "@mui/icons-material/FileUpload";
@@ -16,10 +27,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { exportVault, importVault, fetchPasswords } from "../vaultSlice";
 import { downloadCSV, parseCSV } from "../../../utils/csvUtils";
 
-export default function VaultHeader({ onLogout }) {
+export default function VaultHeader({ onLogout, onDeleteAccount }) {
   const dispatch = useDispatch();
-  const items = useSelector((state) => state.vault.items);
-  const count = items?.length || 0;
+
+  const totalStored = useSelector((state) => state.vault.pageInfo.totalElements || 0);
   const fileInputRef = useRef(null);
 
   const [open, setOpen] = useState(false);
@@ -67,10 +78,8 @@ export default function VaultHeader({ onLogout }) {
         await dispatch(importVault(parsedData)).unwrap();
         
         dispatch(fetchPasswords({ page: 0, size: 6 }));
-        
         alert(`Successfully imported ${parsedData.length} items!`);
-      } catch (err) {
-        console.error(err);
+      } catch {
         alert("Failed to parse or import CSV. Ensure the format is correct.");
       } finally {
         setLoading(false);
@@ -201,6 +210,7 @@ export default function VaultHeader({ onLogout }) {
               },
             }}
             onClick={() => setOpen(true)}
+            disabled={loading}
           >
             Export
           </Button>
@@ -219,17 +229,17 @@ export default function VaultHeader({ onLogout }) {
               },
             }}
             onClick={onLogout}
+            disabled={loading}
           >
             Lock Vault
           </Button>
         </Stack>
       </Paper>
 
-      {/* EXPORT DIALOG */}
-      <Dialog 
-        open={open} 
-        onClose={() => !loading && setOpen(false)} 
-        maxWidth="xs" 
+      <Dialog
+        open={open}
+        onClose={() => !loading && setOpen(false)}
+        maxWidth="xs"
         fullWidth
         slotProps={{
           paper: {
@@ -239,9 +249,7 @@ export default function VaultHeader({ onLogout }) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
-          Confirm Export
-        </DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Confirm Export</DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>
             <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -260,8 +268,8 @@ export default function VaultHeader({ onLogout }) {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton 
-                    onClick={() => setShowMasterPassword(!showMasterPassword)} 
+                  <IconButton
+                    onClick={() => setShowMasterPassword(!showMasterPassword)}
                     edge="end"
                   >
                     {showMasterPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
@@ -275,9 +283,9 @@ export default function VaultHeader({ onLogout }) {
           <Button onClick={() => setOpen(false)} disabled={loading} variant="outlined">
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleExportClick} 
+          <Button
+            variant="contained"
+            onClick={handleExportClick}
             disabled={loading}
             startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
           >

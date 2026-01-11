@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import apiClient from "../../utils/apiClient";
 import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
 import { encryptPassword, decryptPassword, getStoredKey } from "../../utils/cryptoUtils";
 
-const API_BASE = "http://localhost:8080/api/passwords";
+const API_BASE = "/api/passwords";
 
 const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` },
@@ -33,6 +33,7 @@ export const fetchPasswords = createAsyncThunk(
             return rejectWithValue(err.response?.data || err.message);
         }
     }
+  }
 );
 
 export const addPassword = createAsyncThunk("vault/add", async(passwordData) => {
@@ -105,6 +106,7 @@ export const updatePassword = createAsyncThunk(
             return rejectWithValue(err.response?.data || err.message);
         }
     }
+  }
 );
 
 
@@ -161,7 +163,6 @@ export const exportVault = createAsyncThunk(
     }
 );
 
-
 export const importVault = createAsyncThunk(
     "vault/import",
     async(items, { dispatch, rejectWithValue }) => {
@@ -180,7 +181,6 @@ export const importVault = createAsyncThunk(
         }
     }
 );
-
 
 const vaultSlice = createSlice({
     name: "vault",

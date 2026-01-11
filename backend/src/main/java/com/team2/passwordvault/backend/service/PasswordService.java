@@ -3,6 +3,7 @@ package com.team2.passwordvault.backend.service;
 import com.team2.passwordvault.backend.controller.dto.PasswordRequest;
 import com.team2.passwordvault.backend.controller.dto.PasswordResponse;
 import com.team2.passwordvault.backend.enums.PasswordCategory;
+import com.team2.passwordvault.backend.enums.PasswordStrength;
 import com.team2.passwordvault.backend.model.Password;
 import com.team2.passwordvault.backend.model.User;
 import com.team2.passwordvault.backend.repository.PasswordRepository;
@@ -33,16 +34,17 @@ public class PasswordService {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
         Password newEntry = new Password();
-        newEntry.setTitle(request.getTitle());
-        newEntry.setUsernameOrEmail(request.getUsername());
-        newEntry.setEncryptedPassword(request.getEncryptedPassword());
-        newEntry.setEncryptionIv(request.getEncryptionIv());
-        newEntry.setWebsiteUrl(request.getUrl());
-        newEntry.setNotes(request.getNotes());
+        newEntry.setTitle(request.title());
+        newEntry.setUsernameOrEmail(request.username());
+        newEntry.setEncryptedPassword(request.encryptedPassword());
+        newEntry.setEncryptionIv(request.encryptionIv());
+        newEntry.setWebsiteUrl(request.url());
+        newEntry.setNotes(request.notes());
         newEntry.setUser(user);
 
         // Category logic (kept from your original code)
-        newEntry.setCategory(resolveCategory(request.getCategory()));
+        newEntry.setCategory(resolveCategory(request.category()));
+        newEntry.setStrength(resolveStrength(request.strength()));
 
         return passwordRepository.save(newEntry);
     }
@@ -86,14 +88,15 @@ public class PasswordService {
                 .findByIdAndUser(passwordId, user)
                 .orElseThrow(() -> new RuntimeException("Password entry not found or access denied"));
 
-        existingPassword.setTitle(request.getTitle());
-        existingPassword.setUsernameOrEmail(request.getUsername());
-        existingPassword.setEncryptedPassword(request.getEncryptedPassword());
-        existingPassword.setEncryptionIv(request.getEncryptionIv());
-        existingPassword.setWebsiteUrl(request.getUrl());
-        existingPassword.setNotes(request.getNotes());
+        existingPassword.setTitle(request.title());
+        existingPassword.setUsernameOrEmail(request.username());
+        existingPassword.setEncryptedPassword(request.encryptedPassword());
+        existingPassword.setEncryptionIv(request.encryptionIv());
+        existingPassword.setWebsiteUrl(request.url());
+        existingPassword.setNotes(request.notes());
 
-        existingPassword.setCategory(resolveCategory(request.getCategory()));
+        existingPassword.setCategory(resolveCategory(request.category()));
+        existingPassword.setStrength(resolveStrength(request.strength()));
 
         return passwordRepository.save(existingPassword);
     }
@@ -111,5 +114,21 @@ public class PasswordService {
         } catch (IllegalArgumentException e) {
             return PasswordCategory.OTHER;
         }
+    }
+
+    private PasswordStrength resolveStrength(String strength) {
+        if (strength == null || strength.isBlank()) {
+            return null;
+        }
+
+        String normalized = strength.trim().toUpperCase().replaceAll("[ _-]", "");
+        return switch (normalized) {
+            case "VERYWEAK" -> PasswordStrength.VERYWEAK;
+            case "WEAK" -> PasswordStrength.WEAK;
+            case "FAIR" -> PasswordStrength.FAIR;
+            case "STRONG" -> PasswordStrength.STRONG;
+            case "VERYSTRONG" -> PasswordStrength.VERYSTRONG;
+            default -> null;
+        };
     }
 }

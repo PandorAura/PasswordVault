@@ -26,3 +26,15 @@ export async function registerRequest(name, email, password) {
 
   return { email, token };
 }
+
+export async function deleteAccountRequest(masterAuthHash) {
+  await apiClient.delete("/api/account", {
+    headers: {
+      "X-Master-Password": masterAuthHash,
+    },
+  });
+}
+
+export async function deleteAccountWithMasterRequest(email, authHash) {
+  await apiClient.post("/api/auth/delete-account", { email, authHash });
+}
