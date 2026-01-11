@@ -20,12 +20,41 @@ export const fetchPasswords = createAsyncThunk(
         params: { page, size },
       });
 
+      const ek = getStoredKey();
+      const rawItems = response.data.content.map((item) => ({
+        ...item,
+        username: item.usernameOrEmail,
+        url: item.websiteUrl,
+        updatedAt: item.updatedAt
+          ? new Date(item.updatedAt).toLocaleDateString()
+          : item.updatedAt,
+      }));
+
+      const items = ek
+        ? await Promise.all(
+            rawItems.map(async (item) => {
+              if (item.strength) return item;
+              if (!item.encryptedPassword || !item.encryptionIv) return item;
+              try {
+                const decryptedPwd = await decryptPassword(
+                  item.encryptedPassword,
+                  item.encryptionIv,
+                  ek
+                );
+                return {
+                  ...item,
+                  strength: calculatePasswordStrength(decryptedPwd),
+                  updatedAt: item.updatedAt || new Date().toLocaleDateString(),
+                };
+              } catch {
+                return item;
+              }
+            })
+          )
+        : rawItems;
+
       return {
-        items: response.data.content.map((item) => ({
-          ...item,
-          username: item.usernameOrEmail,
-          url: item.websiteUrl,
-        })),
+        items,
         totalPages: response.data.totalPages,
         currentPage: response.data.number,
         totalElements: response.data.totalElements,
@@ -45,6 +74,7 @@ export const addPassword = createAsyncThunk("vault/add", async (passwordData) =>
       ciphertext = encrypted.ciphertext;
       iv = encrypted.iv;
   }
+  const calculatedStrength = calculatePasswordStrength(passwordData.password);
   const payload = {
     title: passwordData.title,
     username: passwordData.username,
@@ -53,8 +83,8 @@ export const addPassword = createAsyncThunk("vault/add", async (passwordData) =>
     category: passwordData.category,
     encryptedPassword: ciphertext,
     encryptionIv: iv,
+    strength: calculatedStrength,
   };
-  const calculatedStrength = calculatePasswordStrength(passwordData.password);
   const currentDate = new Date().toLocaleDateString();
   const response = await axios.post(API_BASE, payload, getAuthHeader());
   const savedData = response.data;
@@ -77,6 +107,8 @@ export const updatePassword = createAsyncThunk(
       if (!item.id) throw new Error("Missing ID - cannot update database");
 
       const { ciphertext, iv } = await encryptPassword(item.password);
+      const strength = calculatePasswordStrength(item.password);
+      const updatedAt = new Date().toLocaleDateString();
       const payload = {
         title: item.title,
         username: item.username,
@@ -85,6 +117,7 @@ export const updatePassword = createAsyncThunk(
         category: item.category,
         encryptedPassword: ciphertext,
         encryptionIv: iv,
+        strength,
       };
       const response = await axios.put(`${API_BASE}/${item.id}`, payload, getAuthHeader());
       return {
@@ -92,6 +125,8 @@ export const updatePassword = createAsyncThunk(
         username: item.username,
         url: item.url,
         password: item.password,
+        strength,
+        updatedAt,
         encryptedPassword: ciphertext,
         encryptionIv: iv,
       };

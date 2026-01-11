@@ -178,27 +178,27 @@ export default function EditPasswordModal({ open, onClose, item }) {
         {activeTab === 0 && (
           <>
             <TextField
+              label="Title"
               fullWidth
               value={form.title}
               onChange={handleChange("title")}
-              placeholder="Title"
               error={Boolean(fieldErrors.title)}
               helperText={fieldErrors.title}
             />
             <TextField
+              label="Username / Email"
               fullWidth
               value={form.username}
               onChange={handleChange("username")}
-              placeholder="Username / Email"
               error={Boolean(fieldErrors.username)}
               helperText={fieldErrors.username}
             />
             <TextField
+              label="Password"
               fullWidth
               type={showPassword ? "text" : "password"}
               value={form.password}
               onChange={handleChange("password")}
-              placeholder="Password"
               error={Boolean(fieldErrors.password)}
               helperText={fieldErrors.password}
               InputProps={{
@@ -220,10 +220,10 @@ export default function EditPasswordModal({ open, onClose, item }) {
               }}
             />
             <TextField
+              label="Website URL"
               fullWidth
               value={form.url}
               onChange={handleChange("url")}
-              placeholder="Website URL"
               error={Boolean(fieldErrors.url)}
               helperText={fieldErrors.url}
             />
@@ -243,12 +243,12 @@ export default function EditPasswordModal({ open, onClose, item }) {
               <option value="OTHER">Other</option>
             </TextField>
             <TextField
+              label="Notes"
               fullWidth
               multiline
               rows={3}
               value={form.notes}
               onChange={handleChange("notes")}
-              placeholder="Notes"
             />
           </>
         )}
@@ -256,10 +256,10 @@ export default function EditPasswordModal({ open, onClose, item }) {
         {activeTab === 1 && (
           <>
             <TextField
+              label="Generated password"
               fullWidth
               value={form.password}
               type={showPassword ? "text" : "password"}
-              placeholder="Generated password"
               InputProps={{
                 readOnly: true,
                 endAdornment: (
