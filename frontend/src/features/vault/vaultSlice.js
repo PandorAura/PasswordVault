@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { encryptPassword } from "../../utils/cryptoUtils";
 import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
+import { encryptPassword, decryptPassword, getStoredKey } from "../../utils/cryptoUtils";
 
 const API_BASE = "http://localhost:8080/api/passwords";
 
@@ -36,7 +36,14 @@ export const fetchPasswords = createAsyncThunk(
 );
 
 export const addPassword = createAsyncThunk("vault/add", async (passwordData) => {
-  const { ciphertext, iv} = await encryptPassword(passwordData.password); 
+  let ciphertext = passwordData.encryptedPassword;
+  let iv = passwordData.encryptionIv;
+  // Only encrypt if we were passed a raw 'password' field
+  if (passwordData.password && !ciphertext) {
+      const encrypted = await encryptPassword(passwordData.password);
+      ciphertext = encrypted.ciphertext;
+      iv = encrypted.iv;
+  }
   const payload = {
     title: passwordData.title,
     username: passwordData.username,
@@ -111,6 +118,70 @@ export const deletePassword = createAsyncThunk("vault/delete", async ({ id, mast
   return id;
 });
 
+
+export const exportVault = createAsyncThunk(
+  "vault/export",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const ek = getStoredKey();
+
+      if (!ek) throw new Error("Vault is locked. Please re-login.");
+
+      // 1. Fetch ALL passwords (size=1000 to bypass pagination)
+      const response = await axios.get(`${API_BASE}?page=0&size=1000`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const encryptedItems = response.data.content;
+
+      // 2. Decrypt locally
+      const decryptedData = await Promise.all(
+        encryptedItems.map(async (item) => {
+          const decryptedPwd = await decryptPassword(
+            item.encryptedPassword,
+            item.encryptionIv,
+            ek
+          );
+          return {
+            title: item.title,
+            username: item.usernameOrEmail,
+            password: decryptedPwd,
+            url: item.websiteUrl,
+            category: item.category,
+            notes: item.notes || "",
+          };
+        })
+      );
+
+      return decryptedData; // This goes to the component
+    } catch (err) {
+      return rejectWithValue(err.message || "Export failed");
+    }
+  }
+);
+
+
+export const importVault = createAsyncThunk(
+  "vault/import",
+  async (items, { dispatch, rejectWithValue }) => {
+    try {
+      const results = [];
+      for (const item of items) {
+        if (!item.password || !item.title) continue;
+
+        // Just pass the raw item; addPassword will handle encryption
+        const result = await dispatch(addPassword(item)).unwrap();
+        results.push(result);
+      }
+      return results;
+    } catch (err) {
+      return rejectWithValue(err.message || "Import failed");
+    }
+  }
+);
+
+
 const vaultSlice = createSlice({
   name: "vault",
   initialState: {
@@ -121,7 +192,7 @@ const vaultSlice = createSlice({
       totalElements: 0,
       totalPages: 0,
       currentPage: 0,
-      size: 10,
+      size: 6,
     },
   },
   reducers: {
