@@ -29,7 +29,6 @@ public class PasswordService {
      * Create a new password entry for the authenticated user
      */
     public Password saveNewPassword(PasswordRequest request, String email) {
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
@@ -42,7 +41,6 @@ public class PasswordService {
         newEntry.setNotes(request.notes());
         newEntry.setUser(user);
 
-        // Category logic (kept from your original code)
         newEntry.setCategory(resolveCategory(request.category()));
         newEntry.setStrength(resolveStrength(request.strength()));
 
@@ -53,7 +51,6 @@ public class PasswordService {
      * Delete a password owned by the authenticated user
      */
     public void deletePassword(UUID passwordId, String email) {
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
@@ -64,16 +61,41 @@ public class PasswordService {
         passwordRepository.delete(password);
     }
 
+    /**
+     * Get all passwords (no filters) for the authenticated user (paged)
+     */
     @Transactional(readOnly = true)
-    public Page<PasswordResponse> getAllPasswords(
-            String email,
-            Pageable pageable
-    ) {
+    public Page<PasswordResponse> getAllPasswords(String email, Pageable pageable) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
         return passwordRepository
                 .findAllByUser(user, pageable)
+                .map(PasswordMapper::toResponse);
+    }
+
+    /**
+     * Get all passwords with filters (paged)
+     * Filters:
+     * - category: "all" (no filter) OR matches enum name (case-insensitive)
+     * - search: matches title / websiteUrl / usernameOrEmail / notes (case-insensitive)
+     */
+    @Transactional(readOnly = true)
+    public Page<PasswordResponse> getAllPasswords(
+            String email,
+            Pageable pageable,
+            String search,
+            String category
+    ) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        String normalizedSearch = (search == null) ? null : search.trim();
+        String normalizedCategory =
+                (category == null || category.isBlank()) ? "all" : category.trim();
+
+        return passwordRepository
+                .findFiltered(user, normalizedSearch, normalizedCategory, pageable)
                 .map(PasswordMapper::toResponse);
     }
 

@@ -32,7 +32,9 @@ public class PasswordController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "title") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "all") String category
     ) {
         Sort sort = direction.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
@@ -41,7 +43,7 @@ public class PasswordController {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<PasswordResponse> result =
-                passwordService.getAllPasswords(authentication.getName(), pageable);
+                passwordService.getAllPasswords(authentication.getName(), pageable, search, category);
 
         return ResponseEntity.ok(result);
     }
