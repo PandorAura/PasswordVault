@@ -90,13 +90,18 @@ export default function VaultPage() {
         onCheckBreaches={() => navigate("/breaches")}
       />
 
-      <VaultList onEditItem={handleEditItem} />
+      {/* IMPORTANT: pass search + category to keep functionality */}
+      <VaultList onEditItem={handleEditItem} search={search} category={category} />
 
       {isModalOpen && (
         <AddPasswordModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
       )}
 
-      <EditPasswordModal open={isEditOpen} onClose={() => setIsEditOpen(false)} item={editingItem} />
+      <EditPasswordModal
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        item={editingItem}
+      />
 
       <DeleteAccountDialog
         open={isDeleteAccountOpen}
