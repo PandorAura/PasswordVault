@@ -139,7 +139,6 @@ To maintain a consistent database state across the team, follow these rules:
 ---
 
 ## 5. Security & Zero-Knowledge Architecture
-The most critical part of the handover is explaining the encryption flow. The application ensures that the server never receives the Master Password or the raw encryption keys.
 
 ### 5.1 The Encryption Flow
 We implement a **Zero-Knowledge Architecture** using the following technical steps:
