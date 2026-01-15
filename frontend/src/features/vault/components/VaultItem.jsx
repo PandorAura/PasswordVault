@@ -153,8 +153,11 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
           backgroundColor: "white",
           width: "100%",
           height: "380px",
+          flex: 1,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
           transition: "all 0.3s ease-in-out",
           cursor: "pointer",
           "&:hover": {
@@ -168,7 +171,16 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
       >
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: "100%",
+              }}
+            >
               {item.title}
             </Typography>
 
@@ -245,24 +257,24 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
           label="URL:"
           value={
             item.url ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                {/* URL text */}
-                <span
-                  style={{
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+                <Typography
+                  component="span"
+                  sx={{
                     color: "#374151",
                     fontSize: "0.9rem",
-                    maxWidth: 220,
+                    minWidth: 0,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
+                    flex: 1,
                   }}
                   title={normalizeUrl(item.url)}
                 >
                   {item.url}
-                </span>
+                </Typography>
 
-                {/* Visit button */}
-                <Stack direction="row" spacing={0.5} alignItems="center">
+                <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 0.5 }}>
                   <a
                     href={normalizeUrl(item.url)}
                     target="_blank"
@@ -271,13 +283,14 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
                       color: "primary.main",
                       fontWeight: 500,
                       textDecoration: "none",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Visit
                   </a>
                   <OpenInNewIcon fontSize="small" sx={{ color: "primary.main" }} />
-                </Stack>
-              </Stack>
+                </Box>
+              </Box>
             ) : (
               "—"
             )
@@ -378,9 +391,18 @@ function Row({ label, value, copyValue, onCopy }) {
       <Typography sx={{ width: 110, color: "text.secondary" }}>
         {label}
       </Typography>
-      <Typography component="div" sx={{ flexGrow: 1 }}>
-        {value}
-      </Typography>
+      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Typography
+          component="div"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {value}
+        </Typography>
+      </Box>
       {copyValue && (
         <IconButton
           size="small"

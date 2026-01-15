@@ -4,7 +4,6 @@ import {
   Typography,
   Pagination,
   Stack,
-  Grid,
   CircularProgress,
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
@@ -114,25 +113,29 @@ export default function VaultList({
 
         {/* Grid */}
         {status !== "loading" && hasItems && (
-          <Grid container spacing={3}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+              },
+              gap: 3,
+              alignItems: "stretch",
+            }}
+          >
             {items.map((item) => (
-              <Grid
-                key={item.id}
-                item
-                xs={12}
-                sm={6}
-                md={4}
-                sx={{ display: "flex" }}
-              >
+              <Box key={item.id} sx={{ display: "flex", minWidth: 0 }}>
                 <VaultItem
                   item={item}
                   onEdit={onEditItem}
                   onDeleteSuccess={onDeleteSuccess}
                   onDeleteError={onDeleteError}
                 />
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         )}
 
         {/* Pagination */}
