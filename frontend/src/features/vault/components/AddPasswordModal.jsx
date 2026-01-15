@@ -16,6 +16,8 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useDispatch } from "react-redux";
@@ -28,6 +30,7 @@ export default function AddPasswordModal({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
     title: "",

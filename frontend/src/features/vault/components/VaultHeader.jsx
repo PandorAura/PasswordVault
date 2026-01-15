@@ -155,7 +155,7 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
                 fontSize: { xs: "0.75rem", sm: "0.875rem" },
               }}
             >
-              {count} password{count !== 1 ? "s" : ""} stored
+              {totalStored} password{totalStored !== 1 ? "s" : ""} stored
             </Typography>
           </Box>
         </Box>
