@@ -70,7 +70,10 @@ export default function MasterPasswordSetupForm({ onSuccess }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
-
+    if (strength.score <= 3) {
+      setError("Please select a stronger password.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError(
         "Passwords do not match. Please ensure both fields are identical."
