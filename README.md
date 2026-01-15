@@ -1,6 +1,6 @@
 # Implementation Documentation: Password Vault
 **Date:** January 15, 2026  
-**Project Team:** Team 2  
+**Project Team:** Team 2
 
 ---
 
@@ -255,7 +255,7 @@ graph TD
         DB[(MySQL Database)]
     end
 
-    %% Interactions
+%% Interactions
     UI <--> Redux
     UI --> Crypto
     Crypto -- "Encrypted Data + AH" --> AuthCtrl
@@ -263,11 +263,11 @@ graph TD
     VaultCtrl <--> Service
     Service <--> DB
     Flyway --> DB
-    
-    %% External Proxy
+
+%% External Proxy
     VaultCtrl -- "k-Anonymity Proxy" --> HIBP
 
-    %% Styling
+%% Styling
     style Crypto fill:#f9f,stroke:#333,stroke-width:2px
     style DB fill:#00f2,stroke:#333,stroke-width:2px
     style Security fill:#ff9,stroke:#333,stroke-width:2px
@@ -283,7 +283,7 @@ In `AccountController.java`, account deletion is protected by more than just a J
 
 ```java
 if (!providedAuthHash.equals(meta.getAuthHash())) {
-    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid master password");
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid master password");
 }
 ```
 
@@ -294,21 +294,21 @@ The relational model is designed to maintain strict ownership and security of da
 erDiagram
     USER ||--|| VAULT_METADATA : "owns"
     USER ||--o{ PASSWORD : "manages"
-    
+
     USER {
         uuid id PK
         string name
         string email UK
         string password_hash
     }
-    
+
     VAULT_METADATA {
         uuid id PK
         uuid user_id FK
         string kdf_salt
         string auth_hash
     }
-    
+
     PASSWORD {
         uuid id PK
         uuid user_id FK
