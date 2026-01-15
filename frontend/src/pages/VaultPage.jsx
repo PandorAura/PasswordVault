@@ -6,7 +6,6 @@ import VaultToolbar from "../features/vault/components/VaultToolbar";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../features/auth/authSlice";
 import { Box, Snackbar, Alert } from "@mui/material";
 
 import { logout } from "../features/auth/authSlice";
@@ -24,7 +23,11 @@ export default function VaultPage() {
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
-  const [deleteSnackbar, setDeleteSnackbar] = useState({ open: false, message: "", type: "success" });
+  const [deleteSnackbar, setDeleteSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -62,7 +65,9 @@ export default function VaultPage() {
     const email = getEmailFromToken();
     if (!email) throw new Error("Missing session.");
 
-    const { data } = await apiClient.get("/api/vault/salt", { params: { email } });
+    const { data } = await apiClient.get("/api/vault/salt", {
+      params: { email },
+    });
     const { authHash } = await deriveSecrets(masterPassword, data.salt);
 
     await deleteAccountWithMasterRequest(email, authHash);
@@ -72,11 +77,19 @@ export default function VaultPage() {
   };
 
   const handleDeleteSuccess = () => {
-    setDeleteSnackbar({ open: true, message: "Password deleted successfully!", type: "success" });
+    setDeleteSnackbar({
+      open: true,
+      message: "Password deleted successfully!",
+      type: "success",
+    });
   };
 
   const handleDeleteError = (errorMsg) => {
-    setDeleteSnackbar({ open: true, message: errorMsg || "Failed to delete password", type: "error" });
+    setDeleteSnackbar({
+      open: true,
+      message: errorMsg || "Failed to delete password",
+      type: "error",
+    });
   };
 
   return (
@@ -100,14 +113,22 @@ export default function VaultPage() {
         onCheckBreaches={() => navigate("/breaches")}
       />
 
-      <VaultList onEditItem={handleEditItem} onDeleteSuccess={handleDeleteSuccess} onDeleteError={handleDeleteError} />
-
-      <AddPasswordModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+      {/* Keep both: filtering + delete notifications */}
+      <VaultList
+        onEditItem={handleEditItem}
+        search={search}
+        category={category}
+        onDeleteSuccess={handleDeleteSuccess}
+        onDeleteError={handleDeleteError}
       />
 
-      <EditPasswordModal open={isEditOpen} onClose={() => setIsEditOpen(false)} item={editingItem} />
+      <AddPasswordModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+
+      <EditPasswordModal
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        item={editingItem}
+      />
 
       <DeleteAccountDialog
         open={isDeleteAccountOpen}
