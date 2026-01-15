@@ -13,8 +13,6 @@ import {
   DialogActions,
   Button,
   CircularProgress,
-  TextField,
-  InputAdornment,
   Snackbar,
   Alert,
 } from "@mui/material";
@@ -42,9 +40,6 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedPassword, setDecryptedPassword] = useState("");
 
-  const [masterPassword, setMasterPassword] = useState("");
-  const [showMasterPassword, setShowMasterPassword] = useState(false);
-  const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" });
 
   React.useEffect(() => {
@@ -92,24 +87,14 @@ export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError
   const handleDelete = async () => {
     try {
       setDeleting(true);
-      setError(null);
-      const masterPasswordHash = await sha256(masterPassword);
-
-      await dispatch(
-        deletePassword({
-          id: item.id,
-          masterPasswordHash,
-        })
-      ).unwrap();
+      await dispatch(deletePassword({ id: item.id })).unwrap();
 
       setConfirmOpen(false);
-      setMasterPassword("");
       if (onDeleteSuccess) {
         onDeleteSuccess();
       }
     } catch (err) {
-      const errorMsg = err.message || "Invalid master password or delete failed";
-      setError(errorMsg);
+      const errorMsg = err?.message || "Delete failed";
       if (onDeleteError) {
         onDeleteError(errorMsg);
       }

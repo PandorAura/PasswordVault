@@ -19,6 +19,7 @@ import {
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LogoutIcon from "@mui/icons-material/Logout";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -161,27 +162,53 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
         </Box>
 
         {/* RIGHT SIDE BUTTONS */}
-        <Stack 
-          direction={{ xs: "row", sm: "row" }} 
-          spacing={{ xs: 1, sm: 2 }}
-          sx={{ 
+        <Box
+          sx={{
             flexShrink: 0,
             width: { xs: "100%", sm: "auto" },
-            justifyContent: { xs: "space-between", sm: "flex-end" },
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(2, minmax(0, 1fr))",
+              sm: "repeat(4, auto)",
+            },
+            gap: { xs: 1, sm: 2 },
+            justifyContent: { sm: "end" },
           }}
         >
+          {onDeleteAccount && (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteForeverIcon />}
+              sx={{
+                textTransform: "none",
+                minWidth: 0,
+                paddingX: { xs: 1, sm: 2 },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                whiteSpace: "nowrap",
+                "& .MuiButton-startIcon": {
+                  marginRight: { xs: 0.5, sm: 1 },
+                },
+              }}
+              onClick={onDeleteAccount}
+              disabled={loading}
+            >
+              Delete account
+            </Button>
+          )}
+
           <Button
             variant="outlined"
             startIcon={loading ? <CircularProgress size={14} /> : <FileUploadIcon />}
             sx={{ 
               textTransform: "none",
-              flex: { xs: 1, sm: "0 0 auto" },
-              minWidth: { xs: 0, sm: "auto" },
+              minWidth: 0,
               paddingX: { xs: 1, sm: 2 },
               fontSize: { xs: "0.75rem", sm: "0.875rem" },
               "& .MuiButton-startIcon": {
                 marginRight: { xs: 0.5, sm: 1 },
               },
+              whiteSpace: "nowrap",
             }}
             onClick={handleImportClick}
             disabled={loading}
@@ -201,13 +228,13 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
             startIcon={<FileDownloadIcon />}
             sx={{ 
               textTransform: "none",
-              flex: { xs: 1, sm: "0 0 auto" },
-              minWidth: { xs: 0, sm: "auto" },
+              minWidth: 0,
               paddingX: { xs: 1, sm: 2 },
               fontSize: { xs: "0.75rem", sm: "0.875rem" },
               "& .MuiButton-startIcon": {
                 marginRight: { xs: 0.5, sm: 1 },
               },
+              whiteSpace: "nowrap",
             }}
             onClick={() => setOpen(true)}
             disabled={loading}
@@ -220,20 +247,20 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
             startIcon={<LogoutIcon />}
             sx={{ 
               textTransform: "none",
-              flex: { xs: 1, sm: "0 0 auto" },
-              minWidth: { xs: 0, sm: "auto" },
+              minWidth: 0,
               paddingX: { xs: 1, sm: 2 },
               fontSize: { xs: "0.75rem", sm: "0.875rem" },
               "& .MuiButton-startIcon": {
                 marginRight: { xs: 0.5, sm: 1 },
               },
+              whiteSpace: "nowrap",
             }}
             onClick={onLogout}
             disabled={loading}
           >
             Lock Vault
           </Button>
-        </Stack>
+        </Box>
       </Paper>
 
       <Dialog

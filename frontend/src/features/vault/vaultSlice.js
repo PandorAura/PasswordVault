@@ -41,6 +41,8 @@ export const fetchPasswords = createAsyncThunk(
         currentPage: raw.number ?? 0,
         totalElements: raw.totalElements ?? 0,
         size,
+        search,
+        category,
       };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -141,11 +143,23 @@ export const updatePassword = createAsyncThunk(
 
 export const deletePassword = createAsyncThunk(
   "vault/delete",
-  async ({ id, masterPasswordHash }, { rejectWithValue }) => {
+  async ({ id }, { dispatch, getState, rejectWithValue }) => {
     try {
-      await apiClient.delete(`${API_BASE}/${id}`, {
-        headers: { "X-Master-Password": masterPasswordHash },
-      });
+      await apiClient.delete(`${API_BASE}/${id}`);
+
+      const state = getState();
+      const { pageInfo } = state.vault || {};
+      const size = pageInfo?.size ?? 6;
+      const currentPage = pageInfo?.currentPage ?? 0;
+      const totalElements = pageInfo?.totalElements ?? 0;
+      const search = pageInfo?.search ?? "";
+      const category = pageInfo?.category ?? "all";
+
+      const remaining = Math.max(0, totalElements - 1);
+      const maxPage = Math.max(0, Math.ceil(remaining / size) - 1);
+      const targetPage = Math.min(currentPage, maxPage);
+
+      dispatch(fetchPasswords({ page: targetPage, size, search, category }));
       return id;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -250,6 +264,8 @@ const vaultSlice = createSlice({
         state.pageInfo.currentPage = action.payload.currentPage;
         state.pageInfo.totalElements = action.payload.totalElements;
         state.pageInfo.size = action.payload.size ?? state.pageInfo.size;
+        state.pageInfo.search = action.payload.search ?? state.pageInfo.search ?? "";
+        state.pageInfo.category = action.payload.category ?? state.pageInfo.category ?? "all";
       })
       .addCase(fetchPasswords.rejected, (state, action) => {
         state.status = "failed";
