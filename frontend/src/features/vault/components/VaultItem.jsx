@@ -13,6 +13,8 @@ import {
   DialogActions,
   Button,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -25,7 +27,7 @@ import { deletePassword, fetchPasswords } from "../vaultSlice";
 import { decryptPassword, getStoredKey } from "../../../utils/cryptoUtils";
 import { normalizeUrl } from "../../../utils/normalizeURL";
 
-export default function VaultItem({ item, onEdit }) {
+export default function VaultItem({ item, onEdit, onDeleteSuccess, onDeleteError }) {
   const dispatch = useDispatch();
 
   // const currentPage = useSelector((state) => state.vault.pageInfo.currentPage);
@@ -38,9 +40,11 @@ export default function VaultItem({ item, onEdit }) {
   const [isDecrypting, setIsDecrypting] = useState(false);
   const [decryptedPassword, setDecryptedPassword] = useState("");
 
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" });
+
   React.useEffect(() => {
-    setDecryptedPassword("");
-    setShowPassword(false);
+    setDecryptedPassword(""); 
+    setShowPassword(false); 
   }, [item.encryptedPassword]);
 
   const strengthStyles = {
@@ -50,6 +54,7 @@ export default function VaultItem({ item, onEdit }) {
     strong: { bg: "#DBEAFE", color: "#1D4ED8" },
     "very strong": { bg: "#DCFCE7", color: "#15803D" },
   };
+
   const handleTogglePassword = async () => {
     if (showPassword) {
       setShowPassword(false);
@@ -83,34 +88,45 @@ export default function VaultItem({ item, onEdit }) {
     try {
       setDeleting(true);
       await dispatch(deletePassword({ id: item.id })).unwrap();
-      const pageToFetch = (items.length === 1 && currentPage > 0) 
-      ? currentPage - 1 
-      : currentPage;
-      dispatch(fetchPasswords({ page: pageToFetch, size: 6 }));
+
       setConfirmOpen(false);
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      }
     } catch (err) {
-      alert(err.message || "Delete failed");
+      const errorMsg = err?.message || "Delete failed";
+      if (onDeleteError) {
+        onDeleteError(errorMsg);
+      }
     } finally {
       setDeleting(false);
     }
   };
-
-  const handleCopy = () => {
-    if (decryptedPassword) {
-      navigator.clipboard.writeText(decryptedPassword);
-    } else {
-      const ek = getStoredKey();
-      if (ek) {
-        decryptPassword(item.encryptedPassword, item.encryptionIv, ek).then(
-          (res) => {
-            setDecryptedPassword(res);
-            navigator.clipboard.writeText(res);
-          }
-        );
+  const handleCopy = async () => {
+    try {
+      if (decryptedPassword) {
+        await navigator.clipboard.writeText(decryptedPassword);
+        setSnackbar({ open: true, message: "Password copied to clipboard!", type: "success" });
+      } else {
+        const ek = getStoredKey();
+        if (ek) {
+          const res = await decryptPassword(item.encryptedPassword, item.encryptionIv, ek);
+          setDecryptedPassword(res);
+          await navigator.clipboard.writeText(res);
+          setSnackbar({ open: true, message: "Password copied to clipboard!", type: "success" });
+        }
       }
+    } catch {
+      setSnackbar({ open: true, message: "Failed to copy password", type: "error" });
     }
   };
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
   return (
     <>
       <Paper
@@ -120,15 +136,36 @@ export default function VaultItem({ item, onEdit }) {
           borderRadius: 3,
           border: "1px solid rgba(0,0,0,0.08)",
           backgroundColor: "white",
-          width: "450px", // RESTORED
-          height: "380px", // RESTORED
+          width: "100%",
+          height: "380px",
+          flex: 1,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
+          transition: "all 0.3s ease-in-out",
+          cursor: "pointer",
+          "&:hover": {
+            elevation: 4,
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+            transform: "translateY(-4px)",
+            borderColor: "white",
+            borderWidth: "0.1px",
+          },
         }}
       >
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: "100%",
+              }}
+            >
               {item.title}
             </Typography>
 
@@ -169,6 +206,11 @@ export default function VaultItem({ item, onEdit }) {
           label="Username:"
           value={item.username}
           copyValue={item.username}
+          onCopy={(message, type) => setSnackbar({ 
+            open: true, 
+            message: message, 
+            type: type 
+          })}
         />
 
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
@@ -200,24 +242,24 @@ export default function VaultItem({ item, onEdit }) {
           label="URL:"
           value={
             item.url ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                {/* URL text */}
-                <span
-                  style={{
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+                <Typography
+                  component="span"
+                  sx={{
                     color: "#374151",
                     fontSize: "0.9rem",
-                    maxWidth: 220,
+                    minWidth: 0,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
+                    flex: 1,
                   }}
                   title={normalizeUrl(item.url)}
                 >
                   {item.url}
-                </span>
+                </Typography>
 
-                {/* Visit button */}
-                <Stack direction="row" spacing={0.5} alignItems="center">
+                <Box sx={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 0.5 }}>
                   <a
                     href={normalizeUrl(item.url)}
                     target="_blank"
@@ -226,13 +268,14 @@ export default function VaultItem({ item, onEdit }) {
                       color: "primary.main",
                       fontWeight: 500,
                       textDecoration: "none",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Visit
                   </a>
                   <OpenInNewIcon fontSize="small" sx={{ color: "primary.main" }} />
-                </Stack>
-              </Stack>
+                </Box>
+              </Box>
             ) : (
               "—"
             )
@@ -248,6 +291,42 @@ export default function VaultItem({ item, onEdit }) {
         </Typography>
       </Paper>
 
+      {/* SNACKBAR NOTIFICATION */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{
+          top: { xs: "16px", sm: "24px" },
+        }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.type}
+          variant="filled"
+          sx={{
+            width: "100%",
+            borderRadius: 3,
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 500,
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+            "& .MuiAlert-icon": {
+              fontSize: "1.25rem",
+            },
+            ...(snackbar.type === "success" && {
+              backgroundColor: "#6366F1",
+              "&:hover": {
+                backgroundColor: "#5855eb",
+              },
+            }),
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* CONFIRM DELETE */}
       <Dialog
         open={confirmOpen}
         onClose={() => !deleting && setConfirmOpen(false)}
@@ -277,19 +356,42 @@ export default function VaultItem({ item, onEdit }) {
   );
 }
 
-function Row({ label, value, copyValue }) {
+/* ---------- Helper ---------- */
+function Row({ label, value, copyValue, onCopy }) {
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(copyValue);
+      if (onCopy) {
+        onCopy("Username copied to clipboard!", "success");
+      }
+    } catch {
+      if (onCopy) {
+        onCopy("Failed to copy to clipboard", "error");
+      }
+    }
+  };
+
   return (
     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
       <Typography sx={{ width: 110, color: "text.secondary" }}>
         {label}
       </Typography>
-      <Typography component="div" sx={{ flexGrow: 1 }}>
-        {value}
-      </Typography>
+      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Typography
+          component="div"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {value}
+        </Typography>
+      </Box>
       {copyValue && (
         <IconButton
           size="small"
-          onClick={() => navigator.clipboard.writeText(copyValue)}
+          onClick={handleCopy}
         >
           <ContentCopyIcon fontSize="small" />
         </IconButton>

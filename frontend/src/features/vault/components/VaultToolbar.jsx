@@ -26,17 +26,17 @@ export default function VaultToolbar({
         width: "100%",
         display: "flex",
         justifyContent: "center",
-        paddingX: 3,
-        marginTop: 3,
-        marginBottom: 3,
+        paddingX: { xs: 2, sm: 3 },
+        marginTop: { xs: 2, sm: 3 },
+        marginBottom: { xs: 2, sm: 3 },
       }}
     >
       <Paper
         elevation={0}
         sx={{
-          width: "100%",
+          width: { xs: "100%", sm: "100%", md: "90%" },
           maxWidth: "1400px",
-          padding: 2,
+          padding: { xs: 1.5, sm: 2 },
           backgroundColor: "white",
           borderRadius: 1,
         }}
@@ -44,19 +44,21 @@ export default function VaultToolbar({
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "stretch", md: "center" },
             justifyContent: "space-between",
             gap: 2,
           }}
         >
-          {/* SEARCH BAR (fixed width) */}
+          {/* SEARCH BAR */}
           <TextField
             placeholder="Search passwords..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             sx={{
-              width: "570px",
-              height: "48px",
+              flex: { xs: 1, md: "0 1 400px" },
+              minWidth: { xs: "100%", md: "300px" },
+              maxWidth: { xs: "100%", md: "570px" },
             }}
             InputProps={{
               startAdornment: (
@@ -64,21 +66,28 @@ export default function VaultToolbar({
                   <SearchIcon sx={{ color: "text.secondary" }} />
                 </InputAdornment>
               ),
-              sx: {
-                height: "48px",
-              },
             }}
           />
 
           {/* RIGHT SIDE BUTTONS */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box 
+            sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "stretch",
+              gap: 2,
+              flex: { xs: 1, md: "0 0 auto" },
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
             {/* CATEGORY DROPDOWN */}
             <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               sx={{
-                width: "250px",
-                height: "48px",
+                flex: { xs: 1, sm: "0 0 180px" },
+                minWidth: { xs: "100%", sm: "180px" },
+                maxWidth: { xs: "100%", sm: "250px" },
               }}
             >
               <MenuItem value="all">All</MenuItem>
@@ -90,30 +99,32 @@ export default function VaultToolbar({
             </Select>
 
             {/* CHECK BREACHES */}
-        <Button
-          variant="outlined"
-          startIcon={<SecurityIcon />}
-          onClick={onCheckBreaches}
-          sx={{
-            height: "48px",
-            width: "250px",
-          }}
-        >
-          Check All Breaches
-        </Button>
+            <Button
+              variant="outlined"
+              startIcon={<SecurityIcon />}
+              onClick={onCheckBreaches}
+              sx={{
+                flex: { xs: 1, sm: "0 0 auto" },
+                minWidth: { xs: "100%", sm: "180px" },
+                maxWidth: { xs: "100%", sm: "250px" },
+              }}
+            >
+              Check All Breaches
+            </Button>
 
-        {/* ADD PASSWORD */}
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={onOpenModal}
-          sx={{
-            height: "48px",
-            width: "250px",
-          }}
-        >
-          Add Password
-        </Button>
+            {/* ADD PASSWORD */}
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={onOpenModal}
+              sx={{
+                flex: { xs: 1, sm: "0 0 auto" },
+                minWidth: { xs: "100%", sm: "180px" },
+                maxWidth: { xs: "100%", sm: "250px" },
+              }}
+            >
+              Add Password
+            </Button>
           </Box>
         </Box>
       </Paper>

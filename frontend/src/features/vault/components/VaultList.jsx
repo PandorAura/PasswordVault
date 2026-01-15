@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Grid,
   Typography,
   Pagination,
   Stack,
@@ -13,7 +12,13 @@ import VaultItem from "./VaultItem";
 import { useNavigate } from "react-router-dom";
 import { getStoredKey } from "../../../utils/cryptoUtils";
 
-export default function VaultList({ onEditItem, search = "", category = "all" }) {
+export default function VaultList({
+  onEditItem,
+  onDeleteSuccess,
+  onDeleteError,
+  search = "",
+  category = "all",
+}) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -29,7 +34,6 @@ export default function VaultList({ onEditItem, search = "", category = "all" })
   }, [search]);
 
   useEffect(() => {
-    // Check if key exists in RAM
     const key = getStoredKey();
     if (!key) {
       navigate("/check-master");
@@ -57,7 +61,6 @@ export default function VaultList({ onEditItem, search = "", category = "all" })
         category,
       })
     );
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -68,14 +71,18 @@ export default function VaultList({ onEditItem, search = "", category = "all" })
       sx={{
         width: "100%",
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
-        paddingX: 3,
+        paddingX: { xs: 2, sm: 3 },
         paddingBottom: 5,
       }}
     >
-      <Box sx={{ width: "100%", maxWidth: "1400px" }}>
+      {/* INNER CONTAINER */}
+      <Box
+        sx={{
+          width: { xs: "100%", sm: "100%", md: "90%" },
+          maxWidth: "1400px",
+        }}
+      >
         {/* Loading */}
         {status === "loading" && (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
@@ -105,14 +112,30 @@ export default function VaultList({ onEditItem, search = "", category = "all" })
         )}
 
         {/* Grid */}
-        {status !== "loading" && (
-          <Grid container spacing={3}>
+        {status !== "loading" && hasItems && (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, minmax(0, 1fr))",
+                md: "repeat(3, minmax(0, 1fr))",
+              },
+              gap: 3,
+              alignItems: "stretch",
+            }}
+          >
             {items.map((item) => (
-              <Grid key={item.id} item xs={12} sm={6} md={4} sx={{ display: "flex" }}>
-                <VaultItem item={item} onEdit={onEditItem} />
-              </Grid>
+              <Box key={item.id} sx={{ display: "flex", minWidth: 0 }}>
+                <VaultItem
+                  item={item}
+                  onEdit={onEditItem}
+                  onDeleteSuccess={onDeleteSuccess}
+                  onDeleteError={onDeleteError}
+                />
+              </Box>
             ))}
-          </Grid>
+          </Box>
         )}
 
         {/* Pagination */}

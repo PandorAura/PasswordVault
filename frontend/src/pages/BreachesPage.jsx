@@ -173,7 +173,12 @@ export default function BreachesPage() {
   }, [results]);
 
   return (
-    <Box>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "background.default",
+      }}
+    >
       <VaultHeader
         onLogout={() => {
           dispatch(logout());
@@ -186,8 +191,8 @@ export default function BreachesPage() {
           width: "100%",
           display: "flex",
           justifyContent: "center",
-          paddingX: 3,
-          marginTop: 3,
+          paddingX: { xs: 2, sm: 3 },
+          marginTop: { xs: 2, sm: 3 },
         }}
       >
         <Paper
@@ -195,57 +200,99 @@ export default function BreachesPage() {
           sx={{
             width: "100%",
             maxWidth: "1400px",
-            padding: 2,
+            padding: { xs: 1.5, sm: 2 },
             backgroundColor: "white",
             borderRadius: 1,
           }}
         >
           <Stack
-            direction="row"
-            alignItems="center"
+            direction={{ xs: "column", md: "row" }}
+            alignItems={{ xs: "flex-start", md: "center" }}
             justifyContent="space-between"
             gap={2}
           >
-            <Stack direction="row" alignItems="center" gap={2}>
+            <Stack 
+              direction={{ xs: "column", sm: "row" }} 
+              alignItems={{ xs: "flex-start", sm: "center" }} 
+              gap={{ xs: 1.5, sm: 2 }}
+              sx={{ flex: 1, minWidth: 0 }}
+            >
               <Box
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: { xs: 40, sm: 48 },
+                  height: { xs: 40, sm: 48 },
                   backgroundColor: "rgba(99, 102, 241, 0.1)",
                   borderRadius: 2,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                <ShieldOutlinedIcon sx={{ color: "#6366f1", fontSize: 28 }} />
+                <ShieldOutlinedIcon 
+                  sx={{ 
+                    color: "primary.main", 
+                    fontSize: { xs: 24, sm: 28 } 
+                  }} 
+                />
               </Box>
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontWeight: 600,
+                    fontSize: { xs: "1rem", sm: "1.25rem" },
+                  }}
+                >
                   Breach Check
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: "text.secondary",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  }}
+                >
                   Checks each vault password against HIBP using k-anonymity (hash
                   prefix only).
                 </Typography>
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack 
+              direction={{ xs: "column", sm: "row" }} 
+              spacing={{ xs: 1.5, sm: 2 }} 
+              alignItems="stretch"
+              sx={{ 
+                width: { xs: "100%", md: "auto" },
+                flexShrink: 0,
+              }}
+            >
               <FormControlLabel
                 control={
                   <Switch
                     checked={onlyBreached}
                     onChange={(e) => setOnlyBreached(e.target.checked)}
+                    size="small"
                   />
                 }
                 label="Only breached"
+                sx={{
+                  margin: 0,
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                  },
+                }}
               />
 
               <Button
                 variant="outlined"
                 startIcon={<ArrowBackIcon />}
-                sx={{ borderRadius: "10px", textTransform: "none" }}
+                sx={{ 
+                  textTransform: "none",
+                  width: { xs: "100%", sm: "auto" },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                }}
                 onClick={() => navigate("/vault")}
               >
                 Back to Vault
@@ -253,13 +300,11 @@ export default function BreachesPage() {
 
               <Button
                 variant="contained"
-                startIcon={status === "loading" ? <CircularProgress size={16} /> : <RefreshIcon />}
+                startIcon={status === "loading" ? <CircularProgress size={16} color="inherit" /> : <RefreshIcon />}
                 sx={{
-                  borderRadius: "10px",
                   textTransform: "none",
-                  backgroundColor: "black",
-                  color: "white",
-                  "&:hover": { backgroundColor: "#222" },
+                  width: { xs: "100%", sm: "auto" },
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
                 }}
                 disabled={status === "loading"}
                 onClick={runScan}
@@ -271,13 +316,35 @@ export default function BreachesPage() {
 
           <Divider sx={{ my: 2 }} />
 
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <Chip label={`Total: ${stats.total}`} />
-            <Chip label={`Breached: ${stats.pwned}`} color={stats.pwned ? "error" : "default"} />
-            <Chip label={`Safe: ${stats.safe}`} color="success" />
+          <Stack 
+            direction="row" 
+            spacing={1} 
+            flexWrap="wrap" 
+            useFlexGap
+            sx={{ gap: { xs: 1, sm: 1 } }}
+          >
+            <Chip 
+              label={`Total: ${stats.total}`}
+              size="small"
+              sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
+            />
+            <Chip 
+              label={`Breached: ${stats.pwned}`} 
+              color={stats.pwned ? "error" : "default"}
+              size="small"
+              sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
+            />
+            <Chip 
+              label={`Safe: ${stats.safe}`} 
+              color="success"
+              size="small"
+              sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
+            />
             <Chip
               label={`Failed: ${stats.failed}`}
               color={stats.failed ? "warning" : "default"}
+              size="small"
+              sx={{ fontSize: { xs: "0.7rem", sm: "0.875rem" } }}
             />
           </Stack>
         </Paper>
@@ -290,8 +357,8 @@ export default function BreachesPage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          marginTop: 3,
-          paddingX: 3,
+          marginTop: { xs: 2, sm: 3 },
+          paddingX: { xs: 2, sm: 3 },
           paddingBottom: 5,
         }}
       >
@@ -300,13 +367,19 @@ export default function BreachesPage() {
             <Paper
               elevation={0}
               sx={{
-                padding: 3,
-                borderRadius: "16px",
+                padding: { xs: 2, sm: 3 },
+                borderRadius: 3,
                 border: "1px solid rgba(0,0,0,0.08)",
                 backgroundColor: "white",
               }}
             >
-              <Typography variant="body1" sx={{ color: "text.secondary" }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: "text.secondary",
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                }}
+              >
                 Click <b>Run breach scan</b> to check all saved passwords.
               </Typography>
             </Paper>
@@ -316,15 +389,20 @@ export default function BreachesPage() {
             <Paper
               elevation={0}
               sx={{
-                padding: 3,
-                borderRadius: "16px",
+                padding: { xs: 2, sm: 3 },
+                borderRadius: 3,
                 border: "1px solid rgba(0,0,0,0.08)",
                 backgroundColor: "white",
               }}
             >
               <Stack direction="row" spacing={1} alignItems="center">
-                <ErrorOutlineIcon color="error" />
-                <Typography color="error">{error || "Scan failed."}</Typography>
+                <ErrorOutlineIcon color="error" sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                <Typography 
+                  color="error"
+                  sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                >
+                  {error || "Scan failed."}
+                </Typography>
               </Stack>
             </Paper>
           )}
@@ -333,13 +411,19 @@ export default function BreachesPage() {
             <Paper
               elevation={0}
               sx={{
-                padding: 3,
-                borderRadius: "16px",
+                padding: { xs: 2, sm: 3 },
+                borderRadius: 3,
                 border: "1px solid rgba(0,0,0,0.08)",
                 backgroundColor: "white",
               }}
             >
-              <Typography variant="body1" sx={{ color: "text.secondary" }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  color: "text.secondary",
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                }}
+              >
                 No breached passwords found (with current filter).
               </Typography>
             </Paper>
@@ -351,8 +435,8 @@ export default function BreachesPage() {
                 key={r.id}
                 elevation={0}
                 sx={{
-                  padding: 2.5,
-                  borderRadius: "16px",
+                  padding: { xs: 2, sm: 2.5 },
+                  borderRadius: 3,
                   border: "1px solid rgba(0,0,0,0.08)",
                   backgroundColor: "white",
                 }}
@@ -361,45 +445,83 @@ export default function BreachesPage() {
                   direction={{ xs: "column", sm: "row" }}
                   alignItems={{ xs: "flex-start", sm: "center" }}
                   justifyContent="space-between"
-                  gap={2}
+                  gap={{ xs: 1.5, sm: 2 }}
                 >
-                  <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 600,
+                        fontSize: { xs: "1rem", sm: "1.25rem" },
+                      }}
+                    >
                       {r.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: "text.secondary",
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                        wordBreak: "break-word",
+                      }}
+                    >
                       {r.username || "—"}
                       {r.url ? ` • ${r.url}` : ""}
                     </Typography>
                   </Box>
 
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack 
+                    direction={{ xs: "column", sm: "row" }} 
+                    spacing={1} 
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                    sx={{ 
+                      width: { xs: "100%", sm: "auto" },
+                      flexShrink: 0,
+                    }}
+                  >
                     {r.status === "pwned" && (
                       <Chip
                         color="error"
                         label={`Pwned ${r.count}×`}
-                        sx={{ fontWeight: 600 }}
+                        size="small"
+                        sx={{ 
+                          fontWeight: 600,
+                          fontSize: { xs: "0.7rem", sm: "0.875rem" },
+                        }}
                       />
                     )}
                     {r.status === "safe" && (
                       <Chip
                         color="success"
                         label="Safe"
-                        sx={{ fontWeight: 600 }}
+                        size="small"
+                        sx={{ 
+                          fontWeight: 600,
+                          fontSize: { xs: "0.7rem", sm: "0.875rem" },
+                        }}
                       />
                     )}
                     {r.status === "error" && (
                       <Chip
                         color="warning"
                         label={`Failed: ${r.message || "Unknown error"}`}
-                        sx={{ fontWeight: 600, maxWidth: 520 }}
+                        size="small"
+                        sx={{ 
+                          fontWeight: 600,
+                          maxWidth: { xs: "100%", sm: 520 },
+                          fontSize: { xs: "0.7rem", sm: "0.875rem" },
+                        }}
                       />
                     )}
 
                     {r.status === "pwned" && (
                       <Button
                         variant="outlined"
-                        sx={{ borderRadius: "10px", textTransform: "none" }}
+                        sx={{ 
+                          textTransform: "none",
+                          width: { xs: "100%", sm: "auto" },
+                          fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                        }}
                         onClick={() => {
                           setDetailsItem(r);
                           setDetailsOpen(true);

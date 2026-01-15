@@ -1,9 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../../utils/apiClient";
 import { calculatePasswordStrength } from "../../utils/passwordStregthCalculator";
-import { encryptPassword, decryptPassword, getStoredKey } from "../../utils/cryptoUtils";
+import {
+  encryptPassword,
+  decryptPassword,
+  getStoredKey,
+} from "../../utils/cryptoUtils";
 
 const API_BASE = "/api/passwords";
+
+/* =========================
+   THUNKS
+========================= */
 
 export const fetchPasswords = createAsyncThunk(
   "vault/fetch",
@@ -16,8 +24,9 @@ export const fetchPasswords = createAsyncThunk(
         params: { page, size, search, category },
       });
 
-      const ek = getStoredKey();
-      const rawItems = response.data.content.map((item) => ({
+      const raw = response.data;
+
+      const items = (raw.content ?? []).map((item) => ({
         ...item,
         username: item.usernameOrEmail,
         url: item.websiteUrl,
@@ -26,34 +35,14 @@ export const fetchPasswords = createAsyncThunk(
           : item.updatedAt,
       }));
 
-      const items = ek
-        ? await Promise.all(
-            rawItems.map(async (item) => {
-              if (item.strength) return item;
-              if (!item.encryptedPassword || !item.encryptionIv) return item;
-              try {
-                const decryptedPwd = await decryptPassword(
-                  item.encryptedPassword,
-                  item.encryptionIv,
-                  ek
-                );
-                return {
-                  ...item,
-                  strength: calculatePasswordStrength(decryptedPwd),
-                  updatedAt: item.updatedAt || new Date().toLocaleDateString(),
-                };
-              } catch {
-                return item;
-              }
-            })
-          )
-        : rawItems;
-
       return {
         items,
-        totalPages: response.data.totalPages,
-        currentPage: response.data.number,
-        totalElements: response.data.totalElements,
+        totalPages: raw.totalPages ?? 0,
+        currentPage: raw.number ?? 0,
+        totalElements: raw.totalElements ?? 0,
+        size,
+        search,
+        category,
       };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -61,48 +50,55 @@ export const fetchPasswords = createAsyncThunk(
   }
 );
 
-export const addPassword = createAsyncThunk("vault/add", async (passwordData) => {
-  let ciphertext = passwordData.encryptedPassword;
-  let iv = passwordData.encryptionIv;
+export const addPassword = createAsyncThunk(
+  "vault/add",
+  async (passwordData, { rejectWithValue }) => {
+    try {
+      let ciphertext = passwordData.encryptedPassword;
+      let iv = passwordData.encryptionIv;
 
-  if (passwordData.password && !ciphertext) {
-    const encrypted = await encryptPassword(passwordData.password);
-    ciphertext = encrypted.ciphertext;
-    iv = encrypted.iv;
+      // Encrypt only if we were given a raw password and no ciphertext
+      if (passwordData.password && !ciphertext) {
+        const encrypted = await encryptPassword(passwordData.password);
+        ciphertext = encrypted.ciphertext;
+        iv = encrypted.iv;
+      }
+
+      const calculatedStrength = passwordData.password
+        ? calculatePasswordStrength(passwordData.password)
+        : passwordData.strength;
+
+      const payload = {
+        title: passwordData.title,
+        username: passwordData.username,
+        url: passwordData.url,
+        notes: passwordData.notes,
+        category: passwordData.category,
+        encryptedPassword: ciphertext,
+        encryptionIv: iv,
+        strength: calculatedStrength,
+      };
+
+      const response = await apiClient.post(API_BASE, payload);
+      const saved = response.data;
+
+      return {
+        ...saved,
+        username: saved.usernameOrEmail,
+        url: saved.websiteUrl,
+        password: passwordData.password, // keep plain only in UI memory if you want
+        strength: calculatedStrength,
+        updatedAt: saved.updatedAt
+          ? new Date(saved.updatedAt).toLocaleDateString()
+          : new Date().toLocaleDateString(),
+        encryptedPassword: ciphertext,
+        encryptionIv: iv,
+      };
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
-
-  const calculatedStrength = passwordData.password
-    ? calculatePasswordStrength(passwordData.password)
-    : passwordData.strength;
-
-  const payload = {
-    title: passwordData.title,
-    username: passwordData.username,
-    url: passwordData.url,
-    notes: passwordData.notes,
-    category: passwordData.category,
-    encryptedPassword: ciphertext,
-    encryptionIv: iv,
-    strength: calculatedStrength,
-  };
-
-  const response = await apiClient.post(API_BASE, payload);
-  const savedData = response.data;
-  const currentDate = new Date().toLocaleDateString();
-
-  return {
-    ...savedData,
-    username: savedData.usernameOrEmail,
-    url: savedData.websiteUrl,
-    password: passwordData.password,
-    strength: calculatedStrength,
-    updatedAt: savedData.updatedAt
-      ? new Date(savedData.updatedAt).toLocaleDateString()
-      : currentDate,
-    encryptedPassword: ciphertext,
-    encryptionIv: iv,
-  };
-});
+);
 
 export const updatePassword = createAsyncThunk(
   "vault/update",
@@ -111,8 +107,6 @@ export const updatePassword = createAsyncThunk(
       if (!item.id) throw new Error("Missing ID - cannot update database");
 
       const { ciphertext, iv } = await encryptPassword(item.password);
-      const strength = calculatePasswordStrength(item.password);
-      const updatedAt = new Date().toLocaleDateString();
 
       const payload = {
         title: item.title,
@@ -122,21 +116,24 @@ export const updatePassword = createAsyncThunk(
         category: item.category,
         encryptedPassword: ciphertext,
         encryptionIv: iv,
-        strength,
+        strength: item.password
+          ? calculatePasswordStrength(item.password)
+          : item.strength,
       };
 
       const response = await apiClient.put(`${API_BASE}/${item.id}`, payload);
+      const saved = response.data;
+
       return {
-        ...response.data,
-        username: item.username,
-        url: item.url,
+        ...saved,
+        username: saved.usernameOrEmail ?? item.username,
+        url: saved.websiteUrl ?? item.url,
         password: item.password,
-        strength,
-        updatedAt: response.data.updatedAt
-          ? new Date(response.data.updatedAt).toLocaleDateString()
-          : updatedAt,
         encryptedPassword: ciphertext,
         encryptionIv: iv,
+        updatedAt: saved.updatedAt
+          ? new Date(saved.updatedAt).toLocaleDateString()
+          : item.updatedAt,
       };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -146,9 +143,23 @@ export const updatePassword = createAsyncThunk(
 
 export const deletePassword = createAsyncThunk(
   "vault/delete",
-  async ({ id }, { rejectWithValue }) => {
+  async ({ id }, { dispatch, getState, rejectWithValue }) => {
     try {
       await apiClient.delete(`${API_BASE}/${id}`);
+
+      const state = getState();
+      const { pageInfo } = state.vault || {};
+      const size = pageInfo?.size ?? 6;
+      const currentPage = pageInfo?.currentPage ?? 0;
+      const totalElements = pageInfo?.totalElements ?? 0;
+      const search = pageInfo?.search ?? "";
+      const category = pageInfo?.category ?? "all";
+
+      const remaining = Math.max(0, totalElements - 1);
+      const maxPage = Math.max(0, Math.ceil(remaining / size) - 1);
+      const targetPage = Math.min(currentPage, maxPage);
+
+      dispatch(fetchPasswords({ page: targetPage, size, search, category }));
       return id;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -163,10 +174,12 @@ export const exportVault = createAsyncThunk(
       const ek = getStoredKey();
       if (!ek) throw new Error("Vault is locked. Please re-login.");
 
+      // Fetch ALL items (bypass pagination)
       const response = await apiClient.get(API_BASE, {
         params: { page: 0, size: 1000 },
       });
-      const encryptedItems = response.data.content;
+
+      const encryptedItems = response.data.content ?? [];
 
       return await Promise.all(
         encryptedItems.map(async (item) => {
@@ -208,6 +221,10 @@ export const importVault = createAsyncThunk(
   }
 );
 
+/* =========================
+   SLICE
+========================= */
+
 const vaultSlice = createSlice({
   name: "vault",
   initialState: {
@@ -236,6 +253,7 @@ const vaultSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      /* ===== FETCH ===== */
       .addCase(fetchPasswords.pending, (state) => {
         state.status = "loading";
       })
@@ -245,30 +263,34 @@ const vaultSlice = createSlice({
         state.pageInfo.totalPages = action.payload.totalPages;
         state.pageInfo.currentPage = action.payload.currentPage;
         state.pageInfo.totalElements = action.payload.totalElements;
+        state.pageInfo.size = action.payload.size ?? state.pageInfo.size;
+        state.pageInfo.search = action.payload.search ?? state.pageInfo.search ?? "";
+        state.pageInfo.category = action.payload.category ?? state.pageInfo.category ?? "all";
       })
       .addCase(fetchPasswords.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       })
+
+      /* ===== ADD ===== */
       .addCase(addPassword.fulfilled, (state, action) => {
         state.items.unshift(action.payload);
-        if (state.items.length > state.pageInfo.size) {
-          state.items.pop();
-        }
+        if (state.items.length > state.pageInfo.size) state.items.pop();
       })
+
+      /* ===== UPDATE ===== */
       .addCase(updatePassword.fulfilled, (state, action) => {
-        const index = state.items.findIndex(
-          (item) => item.id === action.payload.id
-        );
+        const index = state.items.findIndex((i) => i.id === action.payload.id);
         if (index !== -1) {
-          state.items[index] = {
-            ...state.items[index],
-            ...action.payload,
-          };
+          state.items[index] = { ...state.items[index], ...action.payload };
         }
       })
+
+      /* ===== DELETE ===== */
       .addCase(deletePassword.fulfilled, (state, action) => {
-        state.items = state.items.filter((item) => item.id !== action.payload);
+        state.items = state.items.filter((i) => i.id !== action.payload);
+        // Optional: keep totalElements in sync
+        if (state.pageInfo.totalElements > 0) state.pageInfo.totalElements -= 1;
       });
   },
 });

@@ -15,9 +15,10 @@ import {
   Slider,
   Typography,
   Alert,
-  IconButton,
-  InputAdornment,
+  Snackbar,
 } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useDispatch } from "react-redux";
@@ -51,7 +52,7 @@ export default function EditPasswordModal({ open, onClose, item }) {
         url: item.url || "",
         category: item.category || "General",
         notes: item.notes || "",
-        password: "",
+        password: "", 
         encryptionIv: item.encryptionIv,
       };
 
@@ -63,13 +64,13 @@ export default function EditPasswordModal({ open, onClose, item }) {
           })
           .catch((err) => {
             console.error("Failed to decrypt for edit:", err);
-            setForm({ ...initialForm, password: "" });
+            setForm({ ...initialForm, password: "" }); 
           });
       } else {
         setForm(initialForm);
       }
     }
-  }, [item, open]);
+  }, [item, open]); 
 
   const handleChange = (field) => (e) =>
     setForm({ ...form, [field]: e.target.value });
@@ -81,8 +82,9 @@ export default function EditPasswordModal({ open, onClose, item }) {
   const [includeSymbols, setIncludeSymbols] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" });
 
   const generatePassword = () => {
     let chars = "";
@@ -118,8 +120,11 @@ export default function EditPasswordModal({ open, onClose, item }) {
       return;
     }
 
+
     setError(null);
     const strength = calculatePasswordStrength(form.password);
+
+    console.log("Attempting to send update for ID:", form.id); 
 
     try {
       setLoading(true);
@@ -133,19 +138,29 @@ export default function EditPasswordModal({ open, onClose, item }) {
       );
 
       if (updatePassword.fulfilled.match(resultAction)) {
-        onClose();
+        console.log("Update successful!");
+        setSnackbar({ open: true, message: "Password updated successfully!", type: "success" });
+        
+        setTimeout(() => {
+          onClose();
+        }, 300);
       } else {
         console.error("Update failed:", resultAction.payload);
-        setError(resultAction.payload || "Server error");
+        const errorMsg = resultAction.payload || "Server error";
+        setError(errorMsg);
+        setSnackbar({ open: true, message: errorMsg, type: "error" });
       }
-    } catch (err) {
-      setError("An unexpected error occurred");
+    } catch {
+      const errorMsg = "An unexpected error occurred";
+      setError(errorMsg);
+      setSnackbar({ open: true, message: errorMsg, type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <Dialog
       open={open}
       onClose={onClose}
@@ -168,8 +183,8 @@ export default function EditPasswordModal({ open, onClose, item }) {
         {error && (
           <Alert
             severity="error"
-            sx={{ borderRadius: 2 }}
-            onClose={() => setError(null)}
+            sx={{ mb: 2, borderRadius: 2 }}
+            onClose={() => setError(null)} 
           >
             {error}
           </Alert>
@@ -337,6 +352,43 @@ export default function EditPasswordModal({ open, onClose, item }) {
         </Button>
       </DialogActions>
     </Dialog>
+
+    {/* SNACKBAR NOTIFICATION */}
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={3000}
+      onClose={() => setSnackbar({ ...snackbar, open: false })}
+      anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      sx={{
+        top: { xs: "16px", sm: "24px" },
+        zIndex: 9999,
+      }}
+    >
+      <Alert
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        severity={snackbar.type}
+        variant="filled"
+        sx={{
+          width: "100%",
+          borderRadius: 3,
+          fontFamily: "'Inter', sans-serif",
+          fontWeight: 500,
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+          "& .MuiAlert-icon": {
+            fontSize: "1.25rem",
+          },
+          ...(snackbar.type === "success" && {
+            backgroundColor: "#6366F1",
+            "&:hover": {
+              backgroundColor: "#5855eb",
+            },
+          }),
+        }}
+      >
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+    </>
   );
 }
 

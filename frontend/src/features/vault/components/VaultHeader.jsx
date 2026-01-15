@@ -19,6 +19,7 @@ import {
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import LogoutIcon from "@mui/icons-material/Logout";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -71,15 +72,19 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
       try {
         setLoading(true);
         const text = e.target.result;
-        const parsedData = parseCSV(text);
+        
+        const parsedData = parseCSV(text); 
+        console.log("Parsed Data:", parsedData);
+        
         await dispatch(importVault(parsedData)).unwrap();
+        
         dispatch(fetchPasswords({ page: 0, size: 6 }));
         alert(`Successfully imported ${parsedData.length} items!`);
       } catch {
         alert("Failed to parse or import CSV. Ensure the format is correct.");
       } finally {
         setLoading(false);
-        event.target.value = "";
+        event.target.value = ""; 
       }
     };
     reader.readAsText(file);
@@ -91,46 +96,100 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
         elevation={0}
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
-          padding: 2,
-          paddingX: 3,
+          alignItems: { xs: "stretch", sm: "center" },
+          padding: { xs: 1.5, sm: 2 },
+          paddingX: { xs: 2, sm: 3 },
           borderRadius: 0,
           borderBottom: "1px solid #e5e7eb",
           backgroundColor: "white",
+          gap: { xs: 1.5, sm: 0 },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        {/* LEFT SIDE */}
+        <Box 
+          sx={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: { xs: 1.5, sm: 2 },
+            width: { xs: "100%", sm: "auto" },
+            flexShrink: 0,
+          }}
+        >
+          {/* Icon container */}
           <Box
             sx={{
-              width: 48,
-              height: 48,
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
               backgroundColor: "rgba(99, 102, 241, 0.1)",
               borderRadius: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            <ShieldOutlinedIcon sx={{ color: "primary.main", fontSize: 28 }} />
+            <ShieldOutlinedIcon 
+              sx={{ 
+                color: "primary.main", 
+                fontSize: { xs: 24, sm: 28 } 
+              }} 
+            />
           </Box>
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 600,
+                fontSize: { xs: "1rem", sm: "1.25rem" },
+                lineHeight: 1.2,
+              }}
+            >
               Password Vault
             </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: "text.secondary",
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              }}
+            >
               {totalStored} password{totalStored !== 1 ? "s" : ""} stored
             </Typography>
           </Box>
         </Box>
 
-        <Stack direction="row" spacing={2}>
+        {/* RIGHT SIDE BUTTONS */}
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: { xs: "100%", sm: "auto" },
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "repeat(2, minmax(0, 1fr))",
+              sm: "repeat(4, auto)",
+            },
+            gap: { xs: 1, sm: 2 },
+            justifyContent: { sm: "end" },
+          }}
+        >
           {onDeleteAccount && (
             <Button
               variant="outlined"
               color="error"
-              sx={{ textTransform: "none" }}
+              startIcon={<DeleteForeverIcon />}
+              sx={{
+                textTransform: "none",
+                minWidth: 0,
+                paddingX: { xs: 1, sm: 2 },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                whiteSpace: "nowrap",
+                "& .MuiButton-startIcon": {
+                  marginRight: { xs: 0.5, sm: 1 },
+                },
+              }}
               onClick={onDeleteAccount}
               disabled={loading}
             >
@@ -140,8 +199,17 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
 
           <Button
             variant="outlined"
-            startIcon={loading ? <CircularProgress size={16} /> : <FileUploadIcon />}
-            sx={{ textTransform: "none" }}
+            startIcon={loading ? <CircularProgress size={14} /> : <FileUploadIcon />}
+            sx={{ 
+              textTransform: "none",
+              minWidth: 0,
+              paddingX: { xs: 1, sm: 2 },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiButton-startIcon": {
+                marginRight: { xs: 0.5, sm: 1 },
+              },
+              whiteSpace: "nowrap",
+            }}
             onClick={handleImportClick}
             disabled={loading}
           >
@@ -158,7 +226,16 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
           <Button
             variant="outlined"
             startIcon={<FileDownloadIcon />}
-            sx={{ textTransform: "none" }}
+            sx={{ 
+              textTransform: "none",
+              minWidth: 0,
+              paddingX: { xs: 1, sm: 2 },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiButton-startIcon": {
+                marginRight: { xs: 0.5, sm: 1 },
+              },
+              whiteSpace: "nowrap",
+            }}
             onClick={() => setOpen(true)}
             disabled={loading}
           >
@@ -168,13 +245,22 @@ export default function VaultHeader({ onLogout, onDeleteAccount }) {
           <Button
             variant="outlined"
             startIcon={<LogoutIcon />}
-            sx={{ textTransform: "none" }}
+            sx={{ 
+              textTransform: "none",
+              minWidth: 0,
+              paddingX: { xs: 1, sm: 2 },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+              "& .MuiButton-startIcon": {
+                marginRight: { xs: 0.5, sm: 1 },
+              },
+              whiteSpace: "nowrap",
+            }}
             onClick={onLogout}
             disabled={loading}
           >
             Lock Vault
           </Button>
-        </Stack>
+        </Box>
       </Paper>
 
       <Dialog
